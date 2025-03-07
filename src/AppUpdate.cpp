@@ -16,4 +16,6 @@ void App::Update() {
         Util::Input::IfExit()) {
         m_CurrentState = State::END;
     }
+
+    m_Root.Update();
 }

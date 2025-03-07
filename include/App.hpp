@@ -3,6 +3,12 @@
 
 #include "pch.hpp" // IWYU pragma: export
 
+#include "Util/Renderer.hpp"
+#include "Character.hpp"
+#include "Util/Text.hpp"
+#include "PhaseResourceManger.hpp"
+#include "AnimatedCharacter.hpp"
+
 class App {
 public:
     enum class State {
@@ -23,9 +29,20 @@ private:
     void ValidTask();
 
 private:
+    enum class Phase {
+        Start_Page,
+    };
+
     State m_CurrentState = State::START;
+    Phase m_Phase = Phase::Start_Page;
 
+    Util::Renderer m_Root;
 
+    std::shared_ptr<Character> m_test;
+
+    std::shared_ptr<PhaseResourceManger> m_PRM;
+
+    bool m_EnterDown = false;
 };
 
 #endif
