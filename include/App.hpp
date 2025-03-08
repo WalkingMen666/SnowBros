@@ -31,6 +31,9 @@ private:
 private:
     enum class Phase {
         Start_Page,
+        Phase1,
+        Phase2,
+
     };
 
     State m_CurrentState = State::START;
@@ -38,7 +41,7 @@ private:
 
     Util::Renderer m_Root;
 
-    std::shared_ptr<Character> m_test;
+    std::shared_ptr<AnimatedCharacter> m_Tom;
 
     std::shared_ptr<PhaseResourceManger> m_PRM;
 
