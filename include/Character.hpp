@@ -5,7 +5,7 @@
 
 #include "Util/GameObject.hpp"
 
-class Character : public Util::GameObject {
+class Character : public virtual Util::GameObject {
 public:
     explicit Character(const std::string& ImagePath);
 

@@ -8,7 +8,7 @@
 #include "Util/GameObject.hpp"
 
 
-class AnimatedCharacter : public Util::GameObject {
+class AnimatedCharacter : public virtual Util::GameObject {
 
 public:
     explicit AnimatedCharacter(const std::vector<std::string>& AnimationPaths);

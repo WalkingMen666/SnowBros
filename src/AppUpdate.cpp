@@ -15,7 +15,12 @@ void App::Update() {
             LOG_DEBUG("Entered Phase 1, Nick initialized");
         }
     }
-
+    if (m_Nick) {
+        LOG_DEBUG("App input check: A={}, D={}",
+                  Util::Input::IsKeyDown(Util::Keycode::A),
+                  Util::Input::IsKeyDown(Util::Keycode::D));
+        m_Nick->Update();
+    }
 
     /*
      * Do not touch the code below as they serve the purpose for
@@ -26,8 +31,5 @@ void App::Update() {
         m_CurrentState = State::END;
     }
 
-    if (m_Nick) {
-        m_Nick->Update(); // 手動更新 Nick
-    }
     m_Root.Update(); // 更新渲染樹
 }
