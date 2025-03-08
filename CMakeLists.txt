@@ -40,6 +40,8 @@ add_executable(${PROJECT_NAME}
         src/PhaseManager.cpp
         src/Character.cpp
         src/AnimatedCharacter.cpp
+        include/Nick.hpp
+        src/Nick.cpp
 )
 
 if(MSVC)
