@@ -18,34 +18,34 @@ void Nick::LoadAnimations() {
         false, 200, false, 0);
 
     m_IdleLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_stand_left.png"}, true, 500, true, 0);
+        std::vector<std::string>{basePath + "nick_stand_left.png"}, false, 500, true, 0);
     m_IdleRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_stand_right.png"}, true, 500, true, 0);
+        std::vector<std::string>{basePath + "nick_stand_right.png"}, false, 500, true, 0);
 
     m_WalkLeftAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_walk_left_1.png", basePath + "nick_walk_left_2.png", basePath + "nick_walk_left_3.png"},
-        true, 200, true, 0);
+        false, 200, true, 0);
     m_WalkRightAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_walk_right_1.png", basePath + "nick_walk_right_2.png", basePath + "nick_walk_right_3.png"},
-        true, 200, true, 0);
+        false, 200, true, 0);
 
     m_AttackLeftAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_att_left_1.png", basePath + "nick_att_left_2.png"},
-        false, 200, true, 0);
+        false, 200, false, 200); // cooldown 200ms
     m_AttackRightAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_att_right_1.png", basePath + "nick_att_right_2.png"},
-        false, 200, true, 0);
+        false, 200, false, 200); // cooldown 200ms
 
     m_JumpLeftAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png"},
-        false, 250, true, 0);
+        false, 250, false, 0);
     m_JumpRightAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_jump_right_1.png", basePath + "nick_jump_right_2.png", basePath + "nick_jump_right_3.png", basePath + "nick_jump_right_4.png"},
-        false, 250, true, 0);
+        false, 250, false, 0);
 
     m_DieAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_die_1.png", basePath + "nick_die_2.png", basePath + "nick_die_3.png"},
-        false, 300, true, 0);
+        false, 300, false, 0);
 }
 
 void Nick::Update() {
@@ -53,69 +53,69 @@ void Nick::Update() {
     glm::vec2 position = GetPosition();
     bool isMoving = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D);
 
-    // 處理移動（適用於 INVINCIBLE, WALK, JUMP）
-    HandleMovement(deltaTime, position);
+    // 處理無敵狀態的計時和閃爍
+    if (m_IsInvincible) {
+        m_InvincibleTimer -= deltaTime;
+        m_BlinkTimer += deltaTime;
+        if (m_BlinkTimer >= m_BlinkInterval) {
+            SetVisible(!GetVisibility());
+            m_BlinkTimer = 0.0f;
+        }
+        if (m_InvincibleTimer <= 0.0f) {
+            SetInvincible(false);
+        }
+    }
 
     switch (m_State) {
         case State::SPAWN:
             if (IsAnimationFinished()) {
-                SetState(State::INVINCIBLE);
-                m_InvincibleTimer = m_InvincibleDuration;
-                m_BlinkTimer = 0.0f;
-            }
-            break;
-
-        case State::INVINCIBLE:
-            m_InvincibleTimer -= deltaTime;
-            m_BlinkTimer += deltaTime;
-            if (m_BlinkTimer >= m_BlinkInterval) {
-                SetVisible(!GetVisibility());
-                m_BlinkTimer = 0.0f;
-            }
-            if (m_InvincibleTimer <= 0.0f) {
                 SetState(State::IDLE);
-                SetVisible(true);
-            } else {
-                SwitchAnimation(isMoving ? State::WALK : State::IDLE, true);
+                SetInvincible(true);
             }
             break;
 
         case State::IDLE:
-            if (isMoving) {
-                SetState(State::WALK);
+            HandleMovement(deltaTime, position);
+            if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
+                SetState(State::ATTACK);
             } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE)) {
                 SetState(State::JUMP);
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
-                SetState(State::ATTACK);
+            } else if (isMoving) {
+                SetState(State::WALK);
             }
             break;
 
         case State::WALK:
-            if (!isMoving) {
-                SetState(State::IDLE);
+            HandleMovement(deltaTime, position);
+            if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
+                SetState(State::ATTACK);
             } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE)) {
                 SetState(State::JUMP);
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
-                SetState(State::ATTACK);
+            } else if (!isMoving) {
+                SetState(State::IDLE);
             }
             break;
 
         case State::ATTACK:
-            if (IsAnimationFinished()) {
-                SetState(State::IDLE);
+            HandleMovement(deltaTime, position); // 攻擊時保持移動
+            if (Util::Input::IsKeyPressed(Util::Keycode::SPACE)) {
+                SetState(State::JUMP);
+            } else {
+                auto animation = std::dynamic_pointer_cast<Util::Animation>(m_Drawable);
+                if (animation->GetState() == Util::Animation::State::ENDED) {
+                    SetState(isMoving ? State::WALK : State::IDLE); // 結束後根據移動狀態切換
+                }
             }
             break;
 
         case State::JUMP:
-            // 更新垂直速度和位置
+            HandleMovement(deltaTime, position);
             m_JumpVelocity += m_Gravity * deltaTime;
             position.y += m_JumpVelocity * deltaTime;
-
-            // 檢查是否落地
             if (position.y <= m_GroundLevel) {
                 position.y = m_GroundLevel;
                 m_JumpVelocity = 0.0f;
-                SetState(State::IDLE);
+                SetState(isMoving ? State::WALK : State::IDLE); // 落地後根據移動狀態切換
             }
             break;
 
@@ -134,12 +134,22 @@ void Nick::SetState(State state) {
     if (m_State == state) return;
     m_State = state;
 
-    // 初始化跳躍速度
     if (state == State::JUMP) {
         m_JumpVelocity = m_JumpInitialVelocity;
     }
 
     SwitchAnimation(state, (state == State::IDLE || state == State::WALK));
+}
+
+void Nick::SetInvincible(bool invincible) {
+    if (m_IsInvincible == invincible) return;
+    m_IsInvincible = invincible;
+    if (invincible) {
+        m_InvincibleTimer = m_InvincibleDuration;
+        m_BlinkTimer = 0.0f;
+    } else {
+        SetVisible(true);
+    }
 }
 
 void Nick::SetDirection(bool facingRight) {
@@ -151,7 +161,7 @@ void Nick::SetDirection(bool facingRight) {
         int currentFrame = currentAnimation->GetCurrentFrameIndex();
         SwitchAnimation(m_State, false);
         std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->SetCurrentFrame(currentFrame);
-    } else if (m_State == State::IDLE || m_State == State::WALK || m_State == State::INVINCIBLE) {
+    } else if (m_State == State::IDLE || m_State == State::WALK) {
         SwitchAnimation(m_State, true);
     }
 }
@@ -162,7 +172,6 @@ void Nick::SwitchAnimation(State state, bool looping) {
         case State::SPAWN:
             animation = m_SpawnAnimation;
             break;
-        case State::INVINCIBLE:
         case State::IDLE:
             animation = m_FacingRight ? m_IdleRightAnimation : m_IdleLeftAnimation;
             break;
@@ -179,10 +188,12 @@ void Nick::SwitchAnimation(State state, bool looping) {
             animation = m_DieAnimation;
             break;
     }
-    m_Drawable = animation;
-    SetLooping(looping);
-    animation->SetCurrentFrame(0);
-    animation->Play();
+    if (animation) {
+        m_Drawable = animation;
+        SetLooping(looping);
+        animation->SetCurrentFrame(0);
+        animation->Play();
+    }
 }
 
 void Nick::HandleMovement(float deltaTime, glm::vec2& position) {
@@ -194,4 +205,9 @@ void Nick::HandleMovement(float deltaTime, glm::vec2& position) {
         position.x += m_Speed * deltaTime;
         SetDirection(true);
     }
+}
+
+void Nick::Die() {
+    SetState(State::DIE);
+    SetInvincible(false);
 }

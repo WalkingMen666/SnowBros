@@ -16,9 +16,6 @@ void App::Update() {
         }
     }
     if (m_Nick) {
-        LOG_DEBUG("App input check: A={}, D={}",
-                  Util::Input::IsKeyDown(Util::Keycode::A),
-                  Util::Input::IsKeyDown(Util::Keycode::D));
         m_Nick->Update();
     }
 
