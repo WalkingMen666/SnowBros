@@ -9,7 +9,7 @@ Nick::Nick()
 {
     LoadAnimations();
     m_Drawable = m_SpawnAnimation;
-    SetPosition({0.0f, -270.0f}); // 出生在第 29 行地面
+    SetPosition({0.0f, -280.0f}); // 出生在第 29 行地面
     m_SpawnAnimation->Play();
     Update(); // 初始校正
 }
@@ -119,56 +119,48 @@ void Nick::Update() {
         if (!blocked) SetDirection(true);
     }
 
-    // 垂直移動與平台碰撞（瓦片值 1）
+    // 垂直移動
     m_JumpVelocity += m_Gravity * deltaTime;
     float nextY = newPosition.y + m_JumpVelocity * deltaTime;
 
-    int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-    int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-    int tileYStart = std::max(0, std::min(static_cast<int>((std::min(characterBottom, nextY - characterHeight / 2) - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-    int tileYEnd = std::max(0, std::min(static_cast<int>((std::max(characterTop, nextY + characterHeight / 2) - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    // 更新位置（先應用垂直移動）
+    newPosition.y = nextY;
 
+    // 平台碰撞檢測（僅在下落時）
     bool isOnPlatform = false;
     float platformY = m_GroundLevel;
 
-    // 檢查平台碰撞
-    for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
-        for (int tileY = tileYStart; tileY <= tileYEnd; ++tileY) {
-            if (map.GetTile(tileX, tileY) == 1) {
-                float platformTop = 360.0f - tileY * Map::TILE_SIZE;
-                float platformBottom = platformTop - Map::TILE_SIZE;
-                // 檢查是否穿過平台
-                if (characterBottom <= platformTop && nextY + characterHeight / 2 >= platformBottom) {
-                    if (m_JumpVelocity > 0) { // 上升時
-                        if (characterBottom <= platformBottom && nextY + characterHeight / 2 >= platformTop) {
-                            isOnPlatform = true;
-                            platformY = platformTop + characterHeight / 2;
-                            m_JumpVelocity = 0.0f;
-                            break;
-                        }
-                    } else if (m_JumpVelocity <= 0) { // 下落時
-                        if (characterBottom >= platformTop && nextY - characterHeight / 2 <= platformTop) {
-                            isOnPlatform = true;
-                            platformY = platformTop + characterHeight / 2;
-                            m_JumpVelocity = 0.0f;
-                            break;
-                        }
+    if (m_JumpVelocity <= 0) { // 下落或靜止時檢查
+        int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        float nextBottom = newPosition.y - characterHeight / 2;
+        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - nextBottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+
+        for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
+            // 檢查當前瓦片及其下一行
+            for (int tileY = tileYBottom - 1; tileY <= tileYBottom; ++tileY) {
+                if (tileY >= 0 && tileY < Map::MAP_HEIGHT && map.GetTile(tileX, tileY) == 1) {
+                    float platformTop = 360.0f - tileY * Map::TILE_SIZE;
+                    // 檢查底部是否踩在平台上（容差 ±5 單位）
+                    if (nextBottom <= platformTop + 5.0f && nextBottom >= platformTop - 5.0f) {
+                        isOnPlatform = true;
+                        platformY = platformTop + characterHeight / 2;
+                        m_JumpVelocity = 0.0f;
+                        break;
                     }
                 }
             }
+            if (isOnPlatform) break;
         }
-        if (isOnPlatform) break;
     }
 
+    // 應用平台或地面邏輯
     if (isOnPlatform) {
         newPosition.y = platformY;
-    } else {
-        newPosition.y = nextY;
-        if (newPosition.y <= m_GroundLevel) {
-            newPosition.y = m_GroundLevel;
-            m_JumpVelocity = 0.0f;
-            isOnPlatform = true;
-        }
+    } else if (newPosition.y <= m_GroundLevel) {
+        newPosition.y = m_GroundLevel;
+        m_JumpVelocity = 0.0f;
+        isOnPlatform = true;
     }
 
     // 狀態機
@@ -212,7 +204,7 @@ void Nick::Update() {
         case State::DIE:
             if (IsAnimationFinished()) {
                 SetState(State::SPAWN);
-                SetPosition({0.0f, -220.0f});
+                SetPosition({0.0f, -280.0f}); // 更新死亡重生位置
             }
             break;
     }
