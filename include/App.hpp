@@ -8,6 +8,20 @@
 
 class App {
 public:
+    static App& GetInstance() {
+        static App instance;
+        return instance;
+    }
+
+    static PhaseResourceManger* GetPRM() {
+        auto& instance = GetInstance();
+        if (!instance.m_PRM) {
+            LOG_ERROR("PhaseResourceManger is not initialized!");
+            return nullptr;
+        }
+        return instance.m_PRM.get();
+    }
+
     enum class State {
         START,
         UPDATE,
@@ -21,8 +35,12 @@ public:
     void End();
 
 private:
+    App() = default;
+    App(const App&) = delete;
+    App& operator=(const App&) = delete;
+
     enum class Phase {
-        Phase0,  // 起始頁
+        Phase0,
         Phase1,
         Phase2,
     };
@@ -30,8 +48,8 @@ private:
     State m_CurrentState = State::START;
     Phase m_Phase = Phase::Phase0;
 
-    Util::Renderer m_Root;
-    std::shared_ptr<Nick> m_Nick; // 在 Phase 1 時初始化
+    Util::Renderer m_Root;          //管理渲染物件
+    std::shared_ptr<Nick> m_Nick;
     std::shared_ptr<PhaseResourceManger> m_PRM;
 };
 

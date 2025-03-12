@@ -1,4 +1,7 @@
+// Nick.cpp
 #include "Nick.hpp"
+#include "App.hpp"
+#include "PhaseResourceManger.hpp"
 
 Nick::Nick()
     : Character(RESOURCE_DIR "/Image/Character/Tom&Nick/spawn1.png")
@@ -6,8 +9,9 @@ Nick::Nick()
 {
     LoadAnimations();
     m_Drawable = m_SpawnAnimation;
-    SetPosition({0.0f, 0.0f});
+    SetPosition({0.0f, -270.0f}); // 出生在第 29 行地面
     m_SpawnAnimation->Play();
+    Update(); // 初始校正
 }
 
 void Nick::LoadAnimations() {
@@ -31,10 +35,10 @@ void Nick::LoadAnimations() {
 
     m_AttackLeftAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_att_left_1.png", basePath + "nick_att_left_2.png"},
-        false, 200, false, 200); // cooldown 200ms
+        false, 200, false, 200);
     m_AttackRightAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_att_right_1.png", basePath + "nick_att_right_2.png"},
-        false, 200, false, 200); // cooldown 200ms
+        false, 200, false, 200);
 
     m_JumpLeftAnimation = std::make_shared<Util::Animation>(
         std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png"},
@@ -53,7 +57,6 @@ void Nick::Update() {
     glm::vec2 position = GetPosition();
     bool isMoving = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D);
 
-    // 處理無敵狀態的計時和閃爍
     if (m_IsInvincible) {
         m_InvincibleTimer -= deltaTime;
         m_BlinkTimer += deltaTime;
@@ -66,6 +69,109 @@ void Nick::Update() {
         }
     }
 
+    auto prm = App::GetPRM();
+    if (!prm) {
+        LOG_ERROR("PRM is null!");
+        return;
+    }
+    const Map& map = prm->GetMap();
+
+    float characterWidth = 20.0f;
+    float characterHeight = 20.0f;
+    float characterBottom = position.y - characterHeight / 2;
+    float characterTop = position.y + characterHeight / 2;
+    float characterLeft = position.x - characterWidth / 2;
+    float characterRight = position.x + characterWidth / 2;
+
+    // 計算移動
+    glm::vec2 newPosition = position;
+    float moveSpeed = m_Speed * deltaTime;
+
+    // 水平移動與牆壁碰撞（瓦片值 2）
+    if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
+        newPosition.x -= moveSpeed;
+        int nextLeftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((characterBottom - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((characterTop - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        bool blocked = false;
+        for (int y = tileYBottom; y <= tileYTop; ++y) {
+            if (map.GetTile(nextLeftTileX, y) == 2) {
+                blocked = true;
+                newPosition.x = (nextLeftTileX + 1) * Map::TILE_SIZE - 410.0f + characterWidth / 2;
+                break;
+            }
+        }
+        if (!blocked) SetDirection(false);
+    }
+    if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
+        newPosition.x += moveSpeed;
+        int nextRightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((characterBottom - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((characterTop - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        bool blocked = false;
+        for (int y = tileYBottom; y <= tileYTop; ++y) {
+            if (map.GetTile(nextRightTileX, y) == 2) {
+                blocked = true;
+                newPosition.x = nextRightTileX * Map::TILE_SIZE - 410.0f - characterWidth / 2;
+                break;
+            }
+        }
+        if (!blocked) SetDirection(true);
+    }
+
+    // 垂直移動與平台碰撞（瓦片值 1）
+    m_JumpVelocity += m_Gravity * deltaTime;
+    float nextY = newPosition.y + m_JumpVelocity * deltaTime;
+
+    int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int tileYStart = std::max(0, std::min(static_cast<int>((std::min(characterBottom, nextY - characterHeight / 2) - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    int tileYEnd = std::max(0, std::min(static_cast<int>((std::max(characterTop, nextY + characterHeight / 2) - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+
+    bool isOnPlatform = false;
+    float platformY = m_GroundLevel;
+
+    // 檢查平台碰撞
+    for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
+        for (int tileY = tileYStart; tileY <= tileYEnd; ++tileY) {
+            if (map.GetTile(tileX, tileY) == 1) {
+                float platformTop = 360.0f - tileY * Map::TILE_SIZE;
+                float platformBottom = platformTop - Map::TILE_SIZE;
+                // 檢查是否穿過平台
+                if (characterBottom <= platformTop && nextY + characterHeight / 2 >= platformBottom) {
+                    if (m_JumpVelocity > 0) { // 上升時
+                        if (characterBottom <= platformBottom && nextY + characterHeight / 2 >= platformTop) {
+                            isOnPlatform = true;
+                            platformY = platformTop + characterHeight / 2;
+                            m_JumpVelocity = 0.0f;
+                            break;
+                        }
+                    } else if (m_JumpVelocity <= 0) { // 下落時
+                        if (characterBottom >= platformTop && nextY - characterHeight / 2 <= platformTop) {
+                            isOnPlatform = true;
+                            platformY = platformTop + characterHeight / 2;
+                            m_JumpVelocity = 0.0f;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (isOnPlatform) break;
+    }
+
+    if (isOnPlatform) {
+        newPosition.y = platformY;
+    } else {
+        newPosition.y = nextY;
+        if (newPosition.y <= m_GroundLevel) {
+            newPosition.y = m_GroundLevel;
+            m_JumpVelocity = 0.0f;
+            isOnPlatform = true;
+        }
+    }
+
+    // 狀態機
     switch (m_State) {
         case State::SPAWN:
             if (IsAnimationFinished()) {
@@ -73,61 +179,45 @@ void Nick::Update() {
                 SetInvincible(true);
             }
             break;
-
         case State::IDLE:
-            HandleMovement(deltaTime, position);
             if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
                 SetState(State::ATTACK);
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE)) {
+            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && isOnPlatform) {
                 SetState(State::JUMP);
             } else if (isMoving) {
                 SetState(State::WALK);
             }
             break;
-
         case State::WALK:
-            HandleMovement(deltaTime, position);
             if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
                 SetState(State::ATTACK);
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE)) {
+            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && isOnPlatform) {
                 SetState(State::JUMP);
             } else if (!isMoving) {
                 SetState(State::IDLE);
             }
             break;
-
         case State::ATTACK:
-            HandleMovement(deltaTime, position); // 攻擊時保持移動
-            if (Util::Input::IsKeyPressed(Util::Keycode::SPACE)) {
+            if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && isOnPlatform) {
                 SetState(State::JUMP);
-            } else {
-                auto animation = std::dynamic_pointer_cast<Util::Animation>(m_Drawable);
-                if (animation->GetState() == Util::Animation::State::ENDED) {
-                    SetState(isMoving ? State::WALK : State::IDLE); // 結束後根據移動狀態切換
-                }
+            } else if (std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->GetState() == Util::Animation::State::ENDED) {
+                SetState(isMoving ? State::WALK : State::IDLE);
             }
             break;
-
         case State::JUMP:
-            HandleMovement(deltaTime, position);
-            m_JumpVelocity += m_Gravity * deltaTime;
-            position.y += m_JumpVelocity * deltaTime;
-            if (position.y <= m_GroundLevel) {
-                position.y = m_GroundLevel;
-                m_JumpVelocity = 0.0f;
-                SetState(isMoving ? State::WALK : State::IDLE); // 落地後根據移動狀態切換
+            if (isOnPlatform && m_JumpVelocity == 0.0f) {
+                SetState(isMoving ? State::WALK : State::IDLE);
             }
             break;
-
         case State::DIE:
             if (IsAnimationFinished()) {
                 SetState(State::SPAWN);
-                SetPosition({0.0f, 0.0f});
+                SetPosition({0.0f, -220.0f});
             }
             break;
     }
 
-    SetPosition(position);
+    SetPosition(newPosition);
 }
 
 void Nick::SetState(State state) {
@@ -197,13 +287,52 @@ void Nick::SwitchAnimation(State state, bool looping) {
 }
 
 void Nick::HandleMovement(float deltaTime, glm::vec2& position) {
+    auto prm = App::GetPRM();
+    if (!prm) {
+        LOG_ERROR("PRM is null!");
+        return;
+    }
+    const Map& map = prm->GetMap();
+
+    float characterWidth = 20.0f;
+    float characterHeight = 20.0f;
+    float moveSpeed = m_Speed * deltaTime;
+
     if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
-        position.x -= m_Speed * deltaTime;
-        SetDirection(false);
+        float nextX = position.x - moveSpeed;
+        int tileX = std::max(0, std::min(static_cast<int>((nextX - characterWidth / 2) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((position.y - characterHeight / 2) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((position.y + characterHeight / 2) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+
+        bool canMove = true;
+        for (int y = tileYBottom; y <= tileYTop; ++y) {
+            if (map.GetTile(tileX, y) == 2) {
+                canMove = false;
+                break;
+            }
+        }
+        if (canMove) {
+            position.x = nextX;
+            SetDirection(false);
+        }
     }
     if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
-        position.x += m_Speed * deltaTime;
-        SetDirection(true);
+        float nextX = position.x + moveSpeed;
+        int tileX = std::max(0, std::min(static_cast<int>((nextX + characterWidth / 2) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((position.y - characterHeight / 2) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((position.y + characterHeight / 2) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+
+        bool canMove = true;
+        for (int y = tileYBottom; y <= tileYTop; ++y) {
+            if (map.GetTile(tileX, y) == 2) {
+                canMove = false;
+                break;
+            }
+        }
+        if (canMove) {
+            position.x = nextX;
+            SetDirection(true);
+        }
     }
 }
 

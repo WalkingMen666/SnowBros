@@ -42,6 +42,8 @@ add_executable(${PROJECT_NAME}
         src/AnimatedCharacter.cpp
         include/Nick.hpp
         src/Nick.cpp
+        include/Map.hpp
+        src/Map.cpp
 )
 
 if(MSVC)
