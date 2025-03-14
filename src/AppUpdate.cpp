@@ -55,7 +55,7 @@ void App::Update() {
         }
     }
 
-    // Phase_1 遊戲進行
+    // Phase_1 遊戲進
     if (m_Phase == Phase::Phase1) {
         glm::vec2 nickPosition = m_Nick->GetPosition();
         if (nickPosition.x >= 800.0f) {
