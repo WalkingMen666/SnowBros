@@ -59,9 +59,10 @@ private:
 
     float m_Speed = 150.0f;
     float m_JumpVelocity = 0.0f;
-    const float m_JumpInitialVelocity = 420.0f;
+    const float m_JumpInitialVelocity = 450.0f;
     const float m_Gravity = -800.0f;
     const float m_GroundLevel = -280.0f;
+    static constexpr float TILE_SIZE = 5.0f; // 新瓦片大小
 };
 
 #endif // NICK_HPP

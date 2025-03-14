@@ -6,9 +6,9 @@
 
 class Map {
 public:
-    static const int TILE_SIZE = 20;
-    static const int MAP_WIDTH = 41;
-    static const int MAP_HEIGHT = 36;
+    static const int TILE_SIZE = 5;
+    static const int MAP_WIDTH = 164;
+    static const int MAP_HEIGHT = 144;
 
     Map() = default;
 

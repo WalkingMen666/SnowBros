@@ -76,8 +76,8 @@ void Nick::Update() {
     }
     const Map& map = prm->GetMap();
 
-    float characterWidth = 20.0f;
-    float characterHeight = 20.0f;
+    float characterWidth = 5.0f; // 匹配新瓦片大小
+    float characterHeight = 5.0f;
     float characterBottom = position.y - characterHeight / 2;
     float characterTop = position.y + characterHeight / 2;
     float characterLeft = position.x - characterWidth / 2;
@@ -87,62 +87,67 @@ void Nick::Update() {
     glm::vec2 newPosition = position;
     float moveSpeed = m_Speed * deltaTime;
 
-    // 水平移動與牆壁碰撞（瓦片值 2）
+    // 水平移動與牆壁碰撞（瓦片值 2）及邊界限制
     if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
         newPosition.x -= moveSpeed;
-        int nextLeftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int tileYBottom = std::max(0, std::min(static_cast<int>((characterBottom - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-        int tileYTop = std::max(0, std::min(static_cast<int>((characterTop - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int nextLeftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / TILE_SIZE), 144 - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - characterTop) / TILE_SIZE), 144 - 1));
         bool blocked = false;
         for (int y = tileYBottom; y <= tileYTop; ++y) {
             if (map.GetTile(nextLeftTileX, y) == 2) {
                 blocked = true;
-                newPosition.x = (nextLeftTileX + 1) * Map::TILE_SIZE - 410.0f + characterWidth / 2;
+                newPosition.x = (nextLeftTileX + 1) * TILE_SIZE - 410.0f + characterWidth / 2;
                 break;
             }
         }
-        if (!blocked) SetDirection(false);
+        if (!blocked && newPosition.x < -410.0f) {
+            newPosition.x = -410.0f; // 限制左邊界
+        } else if (!blocked) {
+            SetDirection(false);
+        }
     }
     if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
         newPosition.x += moveSpeed;
-        int nextRightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int tileYBottom = std::max(0, std::min(static_cast<int>((characterBottom - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-        int tileYTop = std::max(0, std::min(static_cast<int>((characterTop - -360.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int nextRightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / TILE_SIZE), 144 - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - characterTop) / TILE_SIZE), 144 - 1));
         bool blocked = false;
         for (int y = tileYBottom; y <= tileYTop; ++y) {
             if (map.GetTile(nextRightTileX, y) == 2) {
                 blocked = true;
-                newPosition.x = nextRightTileX * Map::TILE_SIZE - 410.0f - characterWidth / 2;
+                newPosition.x = nextRightTileX * TILE_SIZE - 410.0f - characterWidth / 2;
                 break;
             }
         }
-        if (!blocked) SetDirection(true);
+        if (!blocked && newPosition.x > 410.0f) {
+            newPosition.x = 410.0f; // 限制右邊界
+        } else if (!blocked) {
+            SetDirection(true);
+        }
     }
 
     // 垂直移動
     m_JumpVelocity += m_Gravity * deltaTime;
     float nextY = newPosition.y + m_JumpVelocity * deltaTime;
 
-    // 更新位置（先應用垂直移動）
-    newPosition.y = nextY;
-
     // 平台碰撞檢測（僅在下落時）
     bool isOnPlatform = false;
     float platformY = m_GroundLevel;
 
     if (m_JumpVelocity <= 0) { // 下落或靜止時檢查
-        int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        float nextBottom = newPosition.y - characterHeight / 2;
-        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - nextBottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
+        int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
+        float nextBottom = nextY - characterHeight / 2;
+        int tileYStart = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / TILE_SIZE), 144 - 1));
+        int tileYEnd = std::max(0, std::min(static_cast<int>((360.0f - nextBottom) / TILE_SIZE), 144 - 1));
 
         for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
-            // 檢查當前瓦片及其下一行
-            for (int tileY = tileYBottom - 1; tileY <= tileYBottom; ++tileY) {
-                if (tileY >= 0 && tileY < Map::MAP_HEIGHT && map.GetTile(tileX, tileY) == 1) {
-                    float platformTop = 360.0f - tileY * Map::TILE_SIZE;
-                    // 檢查底部是否踩在平台上（容差 ±5 單位）
-                    if (nextBottom <= platformTop + 5.0f && nextBottom >= platformTop - 5.0f) {
+            for (int tileY = std::min(tileYStart, tileYEnd); tileY <= std::max(tileYStart, tileYEnd); ++tileY) {
+                if (tileY >= 0 && tileY < 144 && map.GetTile(tileX, tileY) == 1) {
+                    float platformTop = 360.0f - tileY * TILE_SIZE;
+                    // 檢查是否從上方穿過平台
+                    if (characterBottom >= platformTop && nextBottom <= platformTop) {
                         isOnPlatform = true;
                         platformY = platformTop + characterHeight / 2;
                         m_JumpVelocity = 0.0f;
@@ -154,13 +159,16 @@ void Nick::Update() {
         }
     }
 
-    // 應用平台或地面邏輯
+    // 更新位置
     if (isOnPlatform) {
         newPosition.y = platformY;
-    } else if (newPosition.y <= m_GroundLevel) {
-        newPosition.y = m_GroundLevel;
-        m_JumpVelocity = 0.0f;
-        isOnPlatform = true;
+    } else {
+        newPosition.y = nextY;
+        if (newPosition.y <= m_GroundLevel) {
+            newPosition.y = m_GroundLevel;
+            m_JumpVelocity = 0.0f;
+            isOnPlatform = true;
+        }
     }
 
     // 狀態機
@@ -204,14 +212,13 @@ void Nick::Update() {
         case State::DIE:
             if (IsAnimationFinished()) {
                 SetState(State::SPAWN);
-                SetPosition({0.0f, -280.0f}); // 更新死亡重生位置
+                SetPosition({0.0f, -280.0f});
             }
             break;
     }
 
     SetPosition(newPosition);
 }
-
 void Nick::SetState(State state) {
     if (m_State == state) return;
     m_State = state;
