@@ -21,7 +21,7 @@ private:
 
     std::shared_ptr<BackgroundImage> m_Background;
     Map m_Map;
-    int m_Phase = 0;
+    int m_Phase = -1;
 };
 
 #endif // PHASE_MANGER_HPP

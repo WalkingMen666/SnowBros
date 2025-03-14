@@ -26,7 +26,7 @@ void Map::LoadFromFile(const std::string& filename) {
             rowData.push_back(0);
         }
         m_TileMap.push_back(rowData);
-        LOG_DEBUG("Loaded row {}: {} tiles", row, rowData.size());
+        // LOG_DEBUG("Loaded row {}: {} tiles", row, rowData.size());
         row++;
     }
     while (m_TileMap.size() < MAP_HEIGHT) {

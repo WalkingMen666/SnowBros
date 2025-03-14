@@ -9,7 +9,7 @@ Nick::Nick()
 {
     LoadAnimations();
     m_Drawable = m_SpawnAnimation;
-    SetPosition({0.0f, -280.0f}); // 出生在第 29 行地面
+    SetPosition({0.0f, -285.0f});
     m_SpawnAnimation->Play();
     Update(); // 初始校正
 }
@@ -76,8 +76,8 @@ void Nick::Update() {
     }
     const Map& map = prm->GetMap();
 
-    float characterWidth = 5.0f; // 匹配新瓦片大小
-    float characterHeight = 5.0f;
+    float characterWidth = 40.0f; // 匹配新瓦片大小
+    float characterHeight = 40.0f;
     float characterBottom = position.y - characterHeight / 2;
     float characterTop = position.y + characterHeight / 2;
     float characterLeft = position.x - characterWidth / 2;

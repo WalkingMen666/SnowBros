@@ -3,7 +3,8 @@
 
 PhaseResourceManger::PhaseResourceManger() {
     m_Background = std::make_shared<BackgroundImage>();
-    LoadPhase(0); // 預設第0關
+    LoadPhase(-1); // 初始載入 phase_1.map，對應 Phase_1
+    // m_Phase = -1; // 同步 m_Phase 為 1
 }
 
 int PhaseResourceManger::GetPhase() const {
@@ -21,7 +22,7 @@ const Map& PhaseResourceManger::GetMap() const {
 void PhaseResourceManger::NextPhase() {
     m_Phase++;
     if (m_Phase > 1) {
-        m_Phase = 0; // 回到開始
+        m_Phase = 0; // 回到 m_Phase = 0 (phase0.map)
     }
     LoadPhase(m_Phase);
     LOG_DEBUG("Switched to Phase: {}", m_Phase);
@@ -37,24 +38,22 @@ void PhaseResourceManger::LoadPhase(int phase) {
     try {
         m_Map.LoadFromFile(filename);
         LOG_DEBUG("Successfully loaded map file for phase {}", phase);
-        
-        // 打印地图的一些信息来验证加载
+
         for (int y = 0; y < Map::MAP_HEIGHT; ++y) {
             std::string row;
             for (int x = 0; x < Map::MAP_WIDTH; ++x) {
                 row += std::to_string(m_Map.GetTile(x, y));
             }
-            LOG_DEBUG("Map Row {}: {}", y, row);
+            // LOG_DEBUG("Map Row {}: {}", y, row);
         }
-        
+
         m_Background->NextPhase(phase);
     } catch (const std::exception& e) {
         LOG_ERROR("Failed to load phase {}: {}", phase, e.what());
-        // 使用內建預設地圖而不是拋出異常
-        m_Map = Map(); // 重置地圖
+        m_Map = Map();
         std::vector<std::vector<int>> defaultMap(Map::MAP_HEIGHT, std::vector<int>(Map::MAP_WIDTH, 0));
         defaultMap[Map::MAP_HEIGHT - 1] = std::vector<int>(Map::MAP_WIDTH, 1); // 底部設為地面
-        m_Map.LoadFromData(defaultMap); // 使用 LoadFromData 而不是直接賦值
+        m_Map.LoadFromData(defaultMap);
         LOG_DEBUG("Loaded default in-memory map for phase {}", phase);
         m_Background->NextPhase(phase);
     }
