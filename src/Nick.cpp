@@ -9,7 +9,7 @@ Nick::Nick()
 {
     LoadAnimations();
     m_Drawable = m_SpawnAnimation;
-    SetPosition({0.0f, -285.0f});
+    SetPosition({0.0f, -285.0f}); // 出生在第 29 行地面
     m_SpawnAnimation->Play();
     Update(); // 初始校正
 }
@@ -76,8 +76,8 @@ void Nick::Update() {
     }
     const Map& map = prm->GetMap();
 
-    float characterWidth = 40.0f; // 匹配新瓦片大小
-    float characterHeight = 40.0f;
+    float characterWidth = 35.0f; // 匹配新瓦片大小
+    float characterHeight = 50.0f;
     float characterBottom = position.y - characterHeight / 2;
     float characterTop = position.y + characterHeight / 2;
     float characterLeft = position.x - characterWidth / 2;
@@ -85,60 +85,87 @@ void Nick::Update() {
 
     // 計算移動
     glm::vec2 newPosition = position;
-    float moveSpeed = m_Speed * deltaTime;
+    float moveSpeed = 150.0f * deltaTime; // m_Speed = 150.0f
 
-    // 水平移動與牆壁碰撞（瓦片值 2）及邊界限制
+    // 垂直移動（先計算 nextY）
+    m_JumpVelocity += m_Gravity * deltaTime;
+    float nextY = newPosition.y + m_JumpVelocity * deltaTime;
+    float nextBottom = nextY - characterHeight / 2;
+    float nextTop = nextY + characterHeight / 2;
+
+    // 水平移動與牆壁碰撞
+    float moveDistance = 0.0f;
     if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
-        newPosition.x -= moveSpeed;
-        int nextLeftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
-        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / TILE_SIZE), 144 - 1));
-        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - characterTop) / TILE_SIZE), 144 - 1));
-        bool blocked = false;
-        for (int y = tileYBottom; y <= tileYTop; ++y) {
-            if (map.GetTile(nextLeftTileX, y) == 2) {
-                blocked = true;
-                newPosition.x = (nextLeftTileX + 1) * TILE_SIZE - 410.0f + characterWidth / 2;
-                break;
-            }
-        }
-        if (!blocked && newPosition.x < -410.0f) {
-            newPosition.x = -410.0f; // 限制左邊界
-        } else if (!blocked) {
-            SetDirection(false);
-        }
+        moveDistance = -moveSpeed;
+    } else if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
+        moveDistance = moveSpeed;
     }
-    if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
-        newPosition.x += moveSpeed;
-        int nextRightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
-        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / TILE_SIZE), 144 - 1));
-        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - characterTop) / TILE_SIZE), 144 - 1));
-        bool blocked = false;
-        for (int y = tileYBottom; y <= tileYTop; ++y) {
-            if (map.GetTile(nextRightTileX, y) == 2) {
-                blocked = true;
-                newPosition.x = nextRightTileX * TILE_SIZE - 410.0f - characterWidth / 2;
-                break;
+
+    if (moveDistance != 0.0f) {
+        float nextX = position.x + moveDistance;
+        float nextLeft = nextX - characterWidth / 2;
+        float nextRight = nextX + characterWidth / 2;
+
+        // 檢查水平和垂直範圍（縮小垂直範圍至 ±5 單位）
+        int startTileX = std::max(0, std::min(static_cast<int>((std::min(characterLeft, nextLeft) + 410.0f) / TILE_SIZE), 164 - 1));
+        int endTileX = std::max(0, std::min(static_cast<int>((std::max(characterRight, nextRight) + 410.0f) / TILE_SIZE), 164 - 1));
+        float minY = std::min(characterBottom, nextBottom) - 5.0f; // 下擴展 5 單位
+        float maxY = std::max(characterTop, nextTop) + 5.0f;       // 上擴展 5 單位
+        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - minY) / TILE_SIZE), 144 - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - maxY) / TILE_SIZE), 144 - 1));
+
+        bool willCollide = false;
+        for (int tileX = startTileX; tileX <= endTileX && !willCollide; ++tileX) {
+            for (int y = tileYTop; y <= tileYBottom && !willCollide; ++y) {
+                if (map.GetTile(tileX, y) == 2) {
+                    float tileLeft = tileX * TILE_SIZE - 410.0f;
+                    float tileRight = tileLeft + TILE_SIZE;
+
+                    // 向右移動
+                    if (moveDistance > 0) {
+                        if (characterRight <= tileLeft && nextRight > tileLeft) {
+                            willCollide = true;
+                            newPosition.x = position.x; // 停在原地
+                            break;
+                        }
+                    }
+                    // 向左移動
+                    else if (moveDistance < 0) {
+                        if (characterLeft >= tileRight && nextLeft < tileRight) {
+                            willCollide = true;
+                            newPosition.x = position.x; // 停在原地
+                            break;
+                        }
+                    }
+                }
             }
         }
-        if (!blocked && newPosition.x > 410.0f) {
-            newPosition.x = 410.0f; // 限制右邊界
-        } else if (!blocked) {
+
+        // 若未碰撞，應用移動並檢查邊界
+        if (!willCollide) {
+            newPosition.x = nextX;
+            if (newPosition.x < -410.0f) {
+                newPosition.x = -410.0f;
+            } else if (newPosition.x > 410.0f) {
+                newPosition.x = 410.0f;
+            }
+        }
+
+        // 設置方向（保持動畫）
+        if (moveDistance < 0) {
+            SetDirection(false);
+        } else if (moveDistance > 0) {
             SetDirection(true);
         }
     }
 
-    // 垂直移動
-    m_JumpVelocity += m_Gravity * deltaTime;
-    float nextY = newPosition.y + m_JumpVelocity * deltaTime;
-
     // 平台碰撞檢測（僅在下落時）
     bool isOnPlatform = false;
-    float platformY = m_GroundLevel;
+    float platformY = -285.0f; // 地面高度
 
     if (m_JumpVelocity <= 0) { // 下落或靜止時檢查
         int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
         int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / TILE_SIZE), 164 - 1));
-        float nextBottom = nextY - characterHeight / 2;
         int tileYStart = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / TILE_SIZE), 144 - 1));
         int tileYEnd = std::max(0, std::min(static_cast<int>((360.0f - nextBottom) / TILE_SIZE), 144 - 1));
 
@@ -146,7 +173,6 @@ void Nick::Update() {
             for (int tileY = std::min(tileYStart, tileYEnd); tileY <= std::max(tileYStart, tileYEnd); ++tileY) {
                 if (tileY >= 0 && tileY < 144 && map.GetTile(tileX, tileY) == 1) {
                     float platformTop = 360.0f - tileY * TILE_SIZE;
-                    // 檢查是否從上方穿過平台
                     if (characterBottom >= platformTop && nextBottom <= platformTop) {
                         isOnPlatform = true;
                         platformY = platformTop + characterHeight / 2;
@@ -164,8 +190,8 @@ void Nick::Update() {
         newPosition.y = platformY;
     } else {
         newPosition.y = nextY;
-        if (newPosition.y <= m_GroundLevel) {
-            newPosition.y = m_GroundLevel;
+        if (newPosition.y <= -285.0f) {
+            newPosition.y = -285.0f;
             m_JumpVelocity = 0.0f;
             isOnPlatform = true;
         }
@@ -212,13 +238,14 @@ void Nick::Update() {
         case State::DIE:
             if (IsAnimationFinished()) {
                 SetState(State::SPAWN);
-                SetPosition({0.0f, -280.0f});
+                SetPosition({0.0f, -285.0f});
             }
             break;
     }
 
     SetPosition(newPosition);
 }
+
 void Nick::SetState(State state) {
     if (m_State == state) return;
     m_State = state;
