@@ -2,6 +2,7 @@
 #include "App.hpp"
 #include "Bullet.hpp"
 #include "Snowball.hpp"
+#include "PhaseResourceManger.hpp"
 // #include "GameWorld.hpp"
 
 Nick::Nick()
@@ -34,6 +35,8 @@ void Nick::Update() {
             SetInvincible(false);
         }
     }
+
+    auto prm = App::GetPRM();
 
     if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
         moveDistance = -moveSpeed;
@@ -77,6 +80,9 @@ void Nick::Update() {
             }
         }
     }
+
+    // 檢查並切換關卡
+    newPosition = prm->CheckAndSwitchPhase(newPosition);
 
     // 狀態機
     switch (m_State) {
