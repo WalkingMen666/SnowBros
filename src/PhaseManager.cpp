@@ -38,15 +38,6 @@ void PhaseResourceManger::LoadPhase(int phase) {
     try {
         m_Map.LoadFromFile(filename);
         LOG_DEBUG("Successfully loaded map file for phase {}", phase);
-
-        for (int y = 0; y < Map::MAP_HEIGHT; ++y) {
-            std::string row;
-            for (int x = 0; x < Map::MAP_WIDTH; ++x) {
-                row += std::to_string(m_Map.GetTile(x, y));
-            }
-            // LOG_DEBUG("Map Row {}: {}", y, row);
-        }
-
         m_Background->NextPhase(phase);
     } catch (const std::exception& e) {
         LOG_ERROR("Failed to load phase {}: {}", phase, e.what());

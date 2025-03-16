@@ -6,7 +6,6 @@
 void Map::LoadFromFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
-        LOG_ERROR("Failed to open map file: {}", filename);
         throw std::runtime_error("Failed to open map file: " + filename);
     }
 
@@ -26,7 +25,6 @@ void Map::LoadFromFile(const std::string& filename) {
             rowData.push_back(0);
         }
         m_TileMap.push_back(rowData);
-        // LOG_DEBUG("Loaded row {}: {} tiles", row, rowData.size());
         row++;
     }
     while (m_TileMap.size() < MAP_HEIGHT) {

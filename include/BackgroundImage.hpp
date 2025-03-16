@@ -7,7 +7,7 @@
 class BackgroundImage : public Util::GameObject {
 public:
     BackgroundImage() : GameObject(
-        std::make_unique<Util::Image>(RESOURCE_DIR "/Image/Background/phase1.png"), -10) {
+        std::make_unique<Util::Image>(RESOURCE_DIR "/Image/Background/phase-1.png"), -10) {
     }
 
     void NextPhase(const int phase) {
@@ -15,7 +15,7 @@ public:
         temp->SetImage(ImagePath(phase));
     }
 
-    void SetImage(const std::string &filepath) { // 公開方法
+    void SetImage(const std::string &filepath) {
         auto temp = std::dynamic_pointer_cast<Util::Image>(m_Drawable);
         temp->SetImage(filepath);
     }

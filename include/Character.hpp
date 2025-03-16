@@ -5,7 +5,7 @@
 
 #include "Util/GameObject.hpp"
 
-class Character : public virtual Util::GameObject {
+class Character : virtual public Util::GameObject {
 public:
     explicit Character(const std::string& ImagePath);
 
@@ -36,8 +36,6 @@ public:
         }
         return false;
     }
-
-    // TODO: Add and implement more methods and properties as needed to finish Giraffe Adventure.
 
 private:
     void ResetPosition() { m_Transform.translation = {0, 0}; }
