@@ -21,9 +21,6 @@ const Map& PhaseResourceManger::GetMap() const {
 
 void PhaseResourceManger::NextPhase() {
     m_Phase++;
-    if (m_Phase > 1) {
-        m_Phase = 0; // 回到 m_Phase = 0 (phase0.map)
-    }
     LoadPhase(m_Phase);
     LOG_DEBUG("Switched to Phase: {}", m_Phase);
 }
