@@ -37,7 +37,7 @@ void App::Update() {
             m_FadeTimer = 0.0f;
             m_FadingIn = true;
             m_Overlay->SetVisible(false);
-            LOG_DEBUG("Entered Phase 0");
+            LOG_INFO("Entered Phase 0");
         }
     }
     else if (m_Phase == Phase::Phase0) {
@@ -51,7 +51,7 @@ void App::Update() {
             }
             GameWorld::AddObject(std::make_shared<RedDemon>(glm::vec2(100.0f, -285.0f)));
             m_Root.AddChild(std::static_pointer_cast<Util::GameObject>(GameWorld::GetObjects().back()));
-            LOG_DEBUG("Entered Phase 1, Nick and RedDemon initialized");
+            LOG_INFO("Entered Phase 1, Nick and RedDemon initialized");
         }
     }
     else if (m_Phase == Phase::Phase1) {

@@ -8,6 +8,7 @@
 #include "Util/Time.hpp"
 #include "Util/Logger.hpp"
 #include "UpdatableDrawable.hpp"
+#include "GameWorld.hpp"
 
 class App;
 
@@ -57,8 +58,8 @@ private:
     float m_JumpVelocity = 0.0f;
     const float m_JumpInitialVelocity = 450.0f;
     const float m_Gravity = -800.0f;
-    const float m_GroundLevel = -285.0f;
-    // static constexpr float TILE_SIZE = 5.0f;
+    const float characterWidth = 35.0f;
+    const float characterHeight = 55.0f;
 };
 
 #endif // NICK_HPP

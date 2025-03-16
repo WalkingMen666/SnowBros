@@ -1,10 +1,8 @@
-// Nick.cpp
 #include "Nick.hpp"
 #include "App.hpp"
 #include "Bullet.hpp"
 #include "Snowball.hpp"
-#include "GameWorld.hpp"
-#include "PhaseResourceManger.hpp"
+// #include "GameWorld.hpp"
 
 Nick::Nick()
     : Character(RESOURCE_DIR "/Image/Character/Tom&Nick/spawn1.png")
@@ -17,57 +15,12 @@ Nick::Nick()
     // Update(); // 初始校正
 }
 
-void Nick::LoadAnimations() {
-    const std::string basePath = RESOURCE_DIR "/Image/Character/Tom&Nick/";
-
-    m_SpawnAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "spawn1.png", basePath + "spawn2.png", basePath + "spawn3.png", basePath + "spawn4.png"},
-        false, 200, false, 0);
-
-    m_IdleLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_stand_left.png"}, false, 500, true, 0);
-    m_IdleRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_stand_right.png"}, false, 500, true, 0);
-
-    m_WalkLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_walk_left_1.png", basePath + "nick_walk_left_2.png", basePath + "nick_walk_left_3.png"},
-        false, 200, true, 0);
-    m_WalkRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_walk_right_1.png", basePath + "nick_walk_right_2.png", basePath + "nick_walk_right_3.png"},
-        false, 200, true, 0);
-
-    m_AttackLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_att_left_1.png", basePath + "nick_att_left_2.png"},
-        false, 200, false, 200);
-    m_AttackRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_att_right_1.png", basePath + "nick_att_right_2.png"},
-        false, 200, false, 200);
-
-    m_JumpLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png"},
-        false, 250, false, 0);
-    m_JumpRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_jump_right_1.png", basePath + "nick_jump_right_2.png", basePath + "nick_jump_right_3.png", basePath + "nick_jump_right_4.png"},
-        false, 250, false, 0);
-
-    m_DieAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_die_1.png", basePath + "nick_die_2.png", basePath + "nick_die_3.png"},
-        false, 300, false, 0);
-    m_PushLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_push_left_1.png", basePath + "nick_push_left_2.png", basePath + "nick_push_left_3.png"},
-        false, 200, true, 0);
-    m_PushRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_push_right_1.png", basePath + "nick_push_right_2.png", basePath + "nick_push_right_3.png"},
-        false, 200, true, 0);
-    m_KickLeftAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_kick_left.png"}, false, 200, false, 0);
-    m_KickRightAnimation = std::make_shared<Util::Animation>(
-        std::vector<std::string>{basePath + "nick_kick_right.png"}, false, 200, false, 0);
-}
-
 void Nick::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     glm::vec2 position = GetPosition();
+    float moveSpeed = m_Speed * deltaTime; // m_Speed = 150.0f
+    float moveDistance = 0.0f;
+    bool isOnPlatform = false;
     bool isMoving = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D);
 
     if (m_IsInvincible) {
@@ -82,125 +35,17 @@ void Nick::Update() {
         }
     }
 
-    auto prm = App::GetPRM();
-    if (!prm) {
-        LOG_ERROR("PRM is null!");
-        return;
-    }
-    const Map& map = prm->GetMap();
-
-    float characterWidth = 35.0f; // 匹配新瓦片大小
-    float characterHeight = 55.0f;
-    float characterBottom = position.y - characterHeight / 2;
-    float characterTop = position.y + characterHeight / 2;
-    float characterLeft = position.x - characterWidth / 2;
-    float characterRight = position.x + characterWidth / 2;
-
-    // 計算移動
-    glm::vec2 newPosition = position;
-    float moveSpeed = m_Speed * deltaTime; // m_Speed = 150.0f
-
-    // 垂直移動（先計算 nextY）
-    m_JumpVelocity += m_Gravity * deltaTime;
-    float nextY = newPosition.y + m_JumpVelocity * deltaTime;
-    float nextBottom = nextY - characterHeight / 2;
-    float nextTop = nextY + characterHeight / 2;
-
-    // 水平移動與牆壁碰撞
-    float moveDistance = 0.0f;
     if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
         moveDistance = -moveSpeed;
     } else if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
         moveDistance = moveSpeed;
     }
 
-    if (moveDistance != 0.0f) {
-        float nextX = position.x + moveDistance;
-        float nextLeft = nextX - characterWidth / 2;
-        float nextRight = nextX + characterWidth / 2;
+    glm::vec2 newPosition = GameWorld::map_collision_judgement(characterWidth, characterWidth, position, m_JumpVelocity, m_Gravity, moveDistance, isOnPlatform);
 
-        // 檢查水平和垂直範圍（縮小垂直範圍至 ±5 單位）
-        int startTileX = std::max(0, std::min(static_cast<int>((std::min(characterLeft, nextLeft) + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int endTileX = std::max(0, std::min(static_cast<int>((std::max(characterRight, nextRight) + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        float minY = std::min(characterBottom, nextBottom) - 4.775f; // 下擴展 4.775 單位
-        float maxY = std::max(characterTop, nextTop) + 5.0f;       // 上擴展 5 單位
-        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - minY) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - maxY) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    // 設置方向（保持動畫）
+    if(moveDistance != 0.0f) SetDirection(moveDistance > 0);
 
-        bool willCollide = false;
-        for (int tileX = startTileX; tileX <= endTileX && !willCollide; ++tileX) {
-            for (int y = tileYTop; y <= tileYBottom && !willCollide; ++y) {
-                if (map.GetTile(tileX, y) == 2) {
-                    float tileLeft = tileX * Map::TILE_SIZE - 410.0f;
-                    float tileRight = tileLeft + Map::TILE_SIZE;
-
-                    // 向右移動
-                    if (moveDistance > 0) {
-                        if (characterRight <= tileLeft && nextRight > tileLeft) {
-                            willCollide = true;
-                            newPosition.x = position.x; // 停在原地
-                            break;
-                        }
-                    }
-                    // 向左移動
-                    else if (moveDistance < 0) {
-                        if (characterLeft >= tileRight && nextLeft < tileRight) {
-                            willCollide = true;
-                            newPosition.x = position.x; // 停在原地
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        // 若未碰撞，應用移動並檢查邊界
-        if (!willCollide) {
-            newPosition.x = nextX;
-            newPosition.x = std::clamp(nextX, -410.0f, 410.0f);
-        }
-
-        // 設置方向（保持動畫）
-        SetDirection(moveDistance > 0);
-    }
-
-    // 平台碰撞檢測（僅在下落時）
-    bool isOnPlatform = false;
-    float platformY = m_GroundLevel; // 地面高度
-
-    if (m_JumpVelocity <= 0) { // 下落或靜止時檢查
-        int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int tileYStart = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-        int tileYEnd = std::max(0, std::min(static_cast<int>((360.0f - nextBottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-
-        for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
-            for (int tileY = std::min(tileYStart, tileYEnd); tileY <= std::max(tileYStart, tileYEnd); ++tileY) {
-                if (tileY >= 0 && tileY < 144 && map.GetTile(tileX, tileY) == 1) {
-                    float platformTop = 360.0f - tileY * Map::TILE_SIZE;
-                    if (characterBottom >= platformTop && nextBottom <= platformTop) {
-                        isOnPlatform = true;
-                        platformY = platformTop + characterHeight / 2;
-                        m_JumpVelocity = 0.0f;
-                        break;
-                    }
-                }
-            }
-            if (isOnPlatform) break;
-        }
-    }
-
-    // 更新位置
-    if (isOnPlatform) {
-        newPosition.y = platformY;
-    } else {
-        newPosition.y = nextY;
-        if (newPosition.y <= m_GroundLevel) {
-            newPosition.y = m_GroundLevel;
-            m_JumpVelocity = 0.0f;
-            isOnPlatform = true;
-        }
-    }
     // 使用 GetPosition() 而非 GetTransform()
     if (Util::Input::IsKeyDown(Util::Keycode::MOUSE_LB)) { // 改為 IsKeyDown
         bool nearSnowball = false;
@@ -284,20 +129,6 @@ void Nick::Update() {
             if (IsAnimationFinished()) SetState(isMoving ? State::WALK : State::IDLE);
             break;
     }
-    // 下一關條件判斷與作弊功能
-    bool goToNextLevel = false;
-
-    // 作弊功能：按 N 鍵直接進入下一關
-    if (Util::Input::IsKeyPressed(Util::Keycode::N)) {
-        goToNextLevel = true;
-    }
-
-    if (goToNextLevel) {
-        prm->NextPhase();                   // 切換到下一關
-        newPosition = {0.0f, m_GroundLevel};     // 重置 Nick 位置
-        SetPosition(newPosition);
-        LOG_INFO("Entering Phase: {}", prm->GetPhase());
-    }
     SetPosition(newPosition);
 }
 
@@ -371,11 +202,58 @@ void Nick::SwitchAnimation(State state, bool looping) {
     }
 }
 
-
 void Nick::Die() {
     if (m_Lives > 0) {
         m_Lives--;
         SetState(State::DIE);
         SetInvincible(false);
     }
+}
+
+void Nick::LoadAnimations() {
+    const std::string basePath = RESOURCE_DIR "/Image/Character/Tom&Nick/";
+
+    m_SpawnAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "spawn1.png", basePath + "spawn2.png", basePath + "spawn3.png", basePath + "spawn4.png"},
+        false, 200, false, 0);
+
+    m_IdleLeftAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_stand_left.png"}, false, 500, true, 0);
+    m_IdleRightAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_stand_right.png"}, false, 500, true, 0);
+
+    m_WalkLeftAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_walk_left_1.png", basePath + "nick_walk_left_2.png", basePath + "nick_walk_left_3.png"},
+        false, 200, true, 0);
+    m_WalkRightAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_walk_right_1.png", basePath + "nick_walk_right_2.png", basePath + "nick_walk_right_3.png"},
+        false, 200, true, 0);
+
+    m_AttackLeftAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_att_left_1.png", basePath + "nick_att_left_2.png"},
+        false, 200, false, 200);
+    m_AttackRightAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_att_right_1.png", basePath + "nick_att_right_2.png"},
+        false, 200, false, 200);
+
+    m_JumpLeftAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png"},
+        false, 250, false, 0);
+    m_JumpRightAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_jump_right_1.png", basePath + "nick_jump_right_2.png", basePath + "nick_jump_right_3.png", basePath + "nick_jump_right_4.png"},
+        false, 250, false, 0);
+
+    m_DieAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_die_1.png", basePath + "nick_die_2.png", basePath + "nick_die_3.png"},
+        false, 300, false, 0);
+    m_PushLeftAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_push_left_1.png", basePath + "nick_push_left_2.png", basePath + "nick_push_left_3.png"},
+        false, 200, true, 0);
+    m_PushRightAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_push_right_1.png", basePath + "nick_push_right_2.png", basePath + "nick_push_right_3.png"},
+        false, 200, true, 0);
+    m_KickLeftAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_kick_left.png"}, false, 200, false, 0);
+    m_KickRightAnimation = std::make_shared<Util::Animation>(
+        std::vector<std::string>{basePath + "nick_kick_right.png"}, false, 200, false, 0);
 }

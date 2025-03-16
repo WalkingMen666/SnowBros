@@ -8,106 +8,25 @@
 RedDemon::RedDemon(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Enemies/red_stand_right.png", pos) {
     LoadAnimations();
     SetAnimation("stand_right");
-    Util::GameObject::m_Drawable = m_Animations["stand_right"];
+    m_Drawable = m_Animations["stand_right"];
 }
 
 void RedDemon::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     if (m_State == EnemyState::Normal) {
         glm::vec2 position = GetPosition();
-        glm::vec2 newPosition = position;
-
-        const float characterWidth = 46.0f, characterHeight = 46.0f;
-        float characterBottom = position.y - characterHeight / 2;
-        float characterTop = position.y + characterHeight / 2;
-        float characterLeft = position.x - characterWidth / 2;
-        float characterRight = position.x + characterWidth / 2;
-        const float VERTICAL_CHECK_RANGE = 5.0f;
         // 水平移動
         float moveSpeed = m_speed * deltaTime; // 調整速度
-        newPosition.x += (m_Direction == Direction::Right) ? moveSpeed : -moveSpeed;
+        float moveDistance = 0.0f;
+        bool isOnPlatform = false;
+        moveDistance = (m_Direction == Direction::Right) ? moveSpeed : -moveSpeed;
         SetAnimation((m_Direction == Direction::Right) ? "walk_right" : "walk_left");
 
         // 重力與跳躍
         m_JumpVelocity += m_Gravity * deltaTime;
+        glm::vec2 newPosition = GameWorld::map_collision_judgement(characterWidth, characterWidth, position, m_JumpVelocity, m_Gravity, moveDistance, isOnPlatform);
         newPosition.y += m_JumpVelocity * deltaTime;
-
-        // 地圖碰撞（參考 Nick）
-        auto prm = App::GetPRM();
-        if (prm) {
-            const Map& map = prm->GetMap();
-            float left = newPosition.x - characterWidth / 2;
-            float right = newPosition.x + characterWidth / 2;
-            float bottom = newPosition.y - characterHeight / 2;
-            float top = newPosition.y + characterHeight / 2;
-
-            int leftTileX = std::max(0, std::min(static_cast<int>((std::min(characterLeft,left)+ 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-            int rightTileX = std::max(0, std::min(static_cast<int>((std::min(characterRight,right)+ 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-            float minY = std::min(characterBottom, bottom) - VERTICAL_CHECK_RANGE;
-            float maxY = std::max(characterTop, top) + VERTICAL_CHECK_RANGE;
-            int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - minY) / Map::Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-            int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - maxY) / Map::Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-
-            bool willCollide = false;
-            for (int tileX = leftTileX; tileX <= rightTileX && !willCollide; ++tileX) {
-                for (int y = tileYTop; y <= tileYBottom && !willCollide; ++y) {
-                    if (map.GetTile(tileX, y) == 2) {
-                        float tileLeft = tileX * Map::Map::TILE_SIZE - 410.0f;
-                        float tileRight = tileLeft + Map::Map::TILE_SIZE;
-
-                        if (m_Direction == Direction::Right  && characterRight <= tileLeft && right > tileLeft) {
-                            willCollide = true;
-                            newPosition.x = tileLeft - characterWidth / 2;
-                        } else if (m_Direction == Direction::Left && characterLeft >= tileRight && left < tileRight) {
-                            willCollide = true;
-                            newPosition.x = tileRight + characterWidth / 2;
-                        }
-                    }
-                }
-            }
-
-            if (!willCollide) {
-                newPosition.x = std::clamp(newPosition.x, -410.0f, 410.0f);
-            }
-
-            bool isOnPlatform = false;
-            float platformY = m_GroundLevel; // 地面高度
-            if (m_JumpVelocity <= 0) {
-                int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), 164 - 1));
-                int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), 164 - 1));
-                int tileYStart = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / Map::TILE_SIZE), 144 - 1));
-                int tileYEnd = std::max(0, std::min(static_cast<int>((360.0f - bottom) / Map::TILE_SIZE), 144 - 1));
-
-                for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
-                    for (int tileY = std::min(tileYStart, tileYEnd); tileY <= std::max(tileYStart, tileYEnd); ++tileY) {
-                        if (map.GetTile(tileX, tileY) == 1) {
-                            float platformTop = 360.0f - tileY * Map::TILE_SIZE;
-                            if (characterBottom >= platformTop && bottom <= platformTop) {
-                                isOnPlatform = true;
-                                platformY = platformTop + characterHeight / 2;
-                                m_JumpVelocity = 0.0f;
-                                break;
-                            }
-                        }
-                    }
-                    if (isOnPlatform) break;
-                }
-            }
-
-            if (isOnPlatform) {
-                newPosition.y = platformY;
-            } else {
-                newPosition.y = std::max(newPosition.y, -285.0f);
-                if (newPosition.y == -285.0f) m_JumpVelocity = 0.0f;
-            }
-            SetPosition(newPosition);
-        }
-
-        m_JumpTimer += deltaTime;
-        if (m_JumpTimer >= JUMP_INTERVAL) {
-            m_JumpTimer = 0.0f;
-            if (rand() % 2 == 0) JumpToPlatform();
-        }
+        SetPosition(newPosition);
     }
 }
 

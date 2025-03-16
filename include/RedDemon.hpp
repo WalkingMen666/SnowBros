@@ -3,6 +3,7 @@
 
 #include "Enemy.hpp"
 #include "Util/Time.hpp"
+#include "GameWorld.hpp"
 
 class RedDemon : public Enemy {
 private:
@@ -12,15 +13,16 @@ private:
     const float m_Gravity = -800.0f;
     float m_JumpTimer;
     const float JUMP_INTERVAL = 2.0f;
+    const float characterWidth = 46.0f;
+    const float characterHeight = 46.0f;
     const std::string BASE_PATH = RESOURCE_DIR "/Image/Character/Enemies/";
+    void LoadAnimations();
 
 public:
     RedDemon(const glm::vec2& pos);
     void Update() override;
     void JumpToPlatform();
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
-private:
-    void LoadAnimations();
 };
 
 #endif // RED_DEMON_HPP
