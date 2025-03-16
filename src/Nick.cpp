@@ -21,7 +21,7 @@ void Nick::Update() {
     glm::vec2 position = GetPosition();
     float moveSpeed = m_Speed * deltaTime; // m_Speed = 150.0f
     float moveDistance = 0.0f;
-    bool isOnPlatform = false;
+    m_IsOnPlatform = false;
     bool isMoving = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D);
 
     if (m_IsInvincible) {
@@ -44,7 +44,7 @@ void Nick::Update() {
         moveDistance = moveSpeed;
     }
 
-    glm::vec2 newPosition = GameWorld::map_collision_judgement(characterWidth, characterWidth, position, m_JumpVelocity, m_Gravity, moveDistance, isOnPlatform);
+    glm::vec2 newPosition = GameWorld::map_collision_judgement(characterWidth, characterWidth, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
 
     // 設置方向（保持動畫）
     if(moveDistance != 0.0f) SetDirection(moveDistance > 0);
@@ -81,9 +81,6 @@ void Nick::Update() {
         }
     }
 
-    // 檢查並切換關卡
-    newPosition = prm->CheckAndSwitchPhase(newPosition);
-
     // 狀態機
     switch (m_State) {
         case State::SPAWN:
@@ -95,7 +92,7 @@ void Nick::Update() {
         case State::IDLE:
             if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
                 SetState(State::ATTACK);
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && isOnPlatform) {
+            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) {
                 SetState(State::JUMP);
             } else if (isMoving) {
                 SetState(State::WALK);
@@ -104,21 +101,21 @@ void Nick::Update() {
         case State::WALK:
             if (Util::Input::IsKeyPressed(Util::Keycode::MOUSE_LB)) {
                 SetState(State::ATTACK);
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && isOnPlatform) {
+            } else if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) {
                 SetState(State::JUMP);
             } else if (!isMoving) {
                 SetState(State::IDLE);
             }
             break;
         case State::ATTACK:
-            if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && isOnPlatform) {
+            if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) {
                 SetState(State::JUMP);
             } else if (std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->GetState() == Util::Animation::State::ENDED) {
                 SetState(isMoving ? State::WALK : State::IDLE);
             }
             break;
         case State::JUMP:
-            if (isOnPlatform && m_JumpVelocity == 0.0f) {
+            if (m_IsOnPlatform && m_JumpVelocity == 0.0f) {
                 SetState(isMoving ? State::WALK : State::IDLE);
             }
             break;

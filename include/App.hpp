@@ -5,10 +5,13 @@
 #include "Util/Renderer.hpp"
 #include "PhaseResourceManger.hpp"
 #include "Util/Color.hpp"
-#include "BackgroundImage.hpp" // 包含 BackgroundImage
+#include "BackgroundImage.hpp"
 #include "Util/Logger.hpp"
+#include <memory>
+#include <vector>
 
 class Nick;
+class Enemy;
 
 class App {
 public:
@@ -37,36 +40,44 @@ public:
         END,
     };
 
-    State GetCurrentState() const { return m_CurrentState; }
-
     void Start();
     void Update();
     void End();
 
+    State GetCurrentState() const { return m_CurrentState; }
+    int GetCurrentLevel() const { return m_CurrentLevel; }
+
 private:
-    App() = default;
+    App();
     App(const App&) = delete;
     App& operator=(const App&) = delete;
 
-    enum class Phase {
-        Phase_1,
-        Phase0,
-        Phase1,
-        Phase2,
+    // 關卡配置結構
+    struct LevelConfig {
+        int levelId;
+        bool isBossLevel;
+        std::vector<std::pair<std::string, glm::vec2>> enemies; // 敵人類型與生成位置
     };
 
-    State m_CurrentState = State::START;
-    Phase m_Phase = Phase::Phase_1;
+    void InitializeLevel(int levelId);      // 初始化關卡
+    void UpdateFadeAnimation(float deltaTime); // 更新淡入淡出動畫
+    void SpawnEnemiesForLevel(int levelId); // 生成關卡敵人
 
-    Util::Renderer m_Root;          // 管理渲染物件
+    State m_CurrentState = State::START;
+    int m_CurrentLevel = -1; // -1: 初始畫面, 0: 開始畫面, 1~30: 關卡
+
+    Util::Renderer m_Root;
     std::shared_ptr<Nick> m_Nick;
     std::shared_ptr<PhaseResourceManger> m_PRM;
     std::shared_ptr<BackgroundImage> m_Overlay;
 
     // 動畫相關
     float m_FadeTimer = 0.0f;
-    const float m_FadeDuration = 4.0f; // 每段淡入/淡出 4 秒，總共 8 秒
-    bool m_FadingIn = true; // 控制淡入還是淡出
+    const float m_FadeDuration = 4.0f;
+    bool m_FadingIn = true;
+
+    // 關卡配置數據
+    std::vector<LevelConfig> m_LevelConfigs;
 };
 
 #endif

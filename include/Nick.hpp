@@ -32,6 +32,7 @@ private:
 
     State m_State = State::SPAWN;
     bool m_FacingRight = true;
+    bool m_IsOnPlatform = false;
     bool m_IsInvincible = false;
     float m_InvincibleTimer = 0.0f;
     const float m_InvincibleDuration = 2.0f;
