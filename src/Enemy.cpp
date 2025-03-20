@@ -4,6 +4,7 @@
 #include "Snowball.hpp"
 #include "GameWorld.hpp"
 #include "Util/Logger.hpp"
+#include "Nick.hpp" // Include Nick for collision
 
 Enemy::Enemy(const std::string& imagePath, const glm::vec2& pos)
     : Character(""), AnimatedCharacter(std::vector<std::string>{}), m_Velocity(0.0f, 0.0f), m_Direction(Direction::Right), m_HitCount(0),

@@ -38,45 +38,47 @@ public:
         START,
         UPDATE,
         END,
+        GAMEOVER
     };
 
     void Start();
     void Update();
     void End();
 
+    void SetState(State state);
     State GetCurrentState() const { return m_CurrentState; }
     int GetCurrentLevel() const { return m_CurrentLevel; }
+    std::shared_ptr<Nick> GetNick() const { return m_Nick; } // New method to access Nick
 
 private:
     App();
     App(const App&) = delete;
     App& operator=(const App&) = delete;
 
-    // 關卡配置結構
     struct LevelConfig {
         int levelId;
         bool isBossLevel;
-        std::vector<std::pair<std::string, glm::vec2>> enemies; // 敵人類型與生成位置
+        std::vector<std::pair<std::string, glm::vec2>> enemies;
     };
 
-    void InitializeLevel(int levelId);      // 初始化關卡
-    void UpdateFadeAnimation(float deltaTime); // 更新淡入淡出動畫
-    void SpawnEnemiesForLevel(int levelId); // 生成關卡敵人
+    void InitializeLevel(int levelId);
+    void UpdateFadeAnimation(float deltaTime);
+    void SpawnEnemiesForLevel(int levelId);
 
     State m_CurrentState = State::START;
-    int m_CurrentLevel = -1; // -1: 初始畫面, 0: 開始畫面, 1~30: 關卡
+    int m_CurrentLevel = -1;
 
     Util::Renderer m_Root;
     std::shared_ptr<Nick> m_Nick;
     std::shared_ptr<PhaseResourceManger> m_PRM;
     std::shared_ptr<BackgroundImage> m_Overlay;
 
-    // 動畫相關
     float m_FadeTimer = 0.0f;
     const float m_FadeDuration = 4.0f;
     bool m_FadingIn = true;
+    float m_GameOverTimer = 0.0f;
+    const float m_GameOverDuration = 1.0f;
 
-    // 關卡配置數據
     std::vector<LevelConfig> m_LevelConfigs;
 };
 

@@ -9,6 +9,7 @@
 #include "Util/Logger.hpp"
 #include "UpdatableDrawable.hpp"
 #include "GameWorld.hpp"
+#include "Enemy.hpp" // Include Enemy instead of RedDemon
 
 class App;
 
@@ -21,6 +22,7 @@ public:
     void Die();
     void SetState(State state);
     void SetInvincible(bool invincible);
+    void OnCollision(std::shared_ptr<Util::GameObject> other); // Collision with any GameObject
     [[nodiscard]] State GetState() const { return m_State; }
     [[nodiscard]] bool IsAnimationFinished() const { return IfAnimationEnds(); }
     void SetDirection(bool facingRight);
@@ -38,7 +40,12 @@ private:
     const float m_InvincibleDuration = 2.0f;
     float m_BlinkTimer = 0.0f;
     const float m_BlinkInterval = 0.2f;
-    int m_Lives = 3;
+    int m_Lives = 1;
+
+    float m_DeathVelocity = 0.0f;
+    const float m_DeathInitialVelocity = 100.0f;
+    float m_DeathPauseTimer = 0.0f;
+    const float m_DeathPauseDuration = 1.0f;
 
     std::shared_ptr<Util::Animation> m_SpawnAnimation;
     std::shared_ptr<Util::Animation> m_IdleLeftAnimation;
@@ -58,7 +65,7 @@ private:
     float m_Speed = 150.0f;
     float m_JumpVelocity = 0.0f;
     const float m_JumpInitialVelocity = 450.0f;
-    const float m_Gravity = -800.0f;
+    float m_Gravity = -800.0f;
     const float characterWidth = 35.0f;
     const float characterHeight = 55.0f;
 };

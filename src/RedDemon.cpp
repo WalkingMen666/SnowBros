@@ -21,31 +21,27 @@ void RedDemon::Update() {
     glm::vec2 position = GetPosition();
 
     m_IsOnPlatform = false;
-    // 更新動作計時器
     m_ActionTimer += deltaTime;
     m_Direction = m_TargetDirection;
 
-    if(m_ActionTimer >= ACTION_DELAY && m_CurrentState == State::STAND) {
+    if (m_ActionTimer >= ACTION_DELAY && m_CurrentState == State::STAND) {
         SetState(State::WALK);
     }
 
-    // 根據當前狀態決定移動速度
     float moveSpeed = (m_CurrentState == State::STAND) ? 0.0f : m_speed * deltaTime;
     float moveDistance = (m_Direction == Direction::Right) ? moveSpeed : -moveSpeed;
 
-    // 應用地圖碰撞檢測
     glm::vec2 newPosition = GameWorld::map_collision_judgement(characterWidth, characterHeight, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
 
     if (m_IsActing || m_IsChangingDirection) {
-        // 正在執行跳躍或改變方向
         if (m_ActionTimer >= ACTION_DELAY) {
             if (m_IsActing) {
-                int action = std::rand() % 5; // 60%: 跳躍向上, 40%: 不動
+                int action = std::rand() % 5;
                 if (action > 1) {
                     m_JumpVelocity = m_JumpInitialVelocity;
                     SetState(State::JUMP);
                 } else {
-                    SetState(State::WALK); // 若不動，恢復走路
+                    SetState(State::WALK);
                 }
                 m_IsActing = false;
             } else if (m_IsChangingDirection) {
@@ -56,15 +52,14 @@ void RedDemon::Update() {
             m_ActionTimer = 0.0f;
         }
     } else {
-        // 正常移動狀態
         if (m_CurrentState == State::WALK && m_ActionTimer >= 1.0f) {
             int decision = std::rand() % 10;
-            if (decision < 5) { // 50% 機率改變方向
+            if (decision < 5) {
                 m_IsChangingDirection = true;
                 m_TargetDirection = (m_Direction == Direction::Right) ? Direction::Left : Direction::Right;
                 SetState(State::STAND);
                 m_ActionTimer = 0.0f;
-            } else if (decision < 8) { // 30% 機率切換平台
+            } else if (decision < 8) {
                 m_IsActing = true;
                 SetState(State::STAND);
                 m_ActionTimer = 0.0f;
@@ -73,7 +68,6 @@ void RedDemon::Update() {
             }
         }
 
-        // 檢查邊界並反向
         if (newPosition.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - characterWidth) / 2) {
             m_IsChangingDirection = true;
             m_TargetDirection = Direction::Left;
@@ -85,17 +79,23 @@ void RedDemon::Update() {
             SetState(State::STAND);
             m_ActionTimer = 0.0f;
         } else if (m_CurrentState == State::WALK) {
-            if(m_JumpVelocity < 0.0f) SetState(State::FALL);
+            if (m_JumpVelocity < 0.0f) SetState(State::FALL);
         }
 
-        // 處理跳躍和下落狀態
         if (m_CurrentState == State::JUMP || m_CurrentState == State::FALL) {
             if (m_IsOnPlatform && m_JumpVelocity <= 0.0f) {
-                SetState(State::STAND); // 落地後切換回站立
+                SetState(State::STAND);
             }
         }
     }
     SetPosition(newPosition);
+
+    // Check collision with Nick
+    if (auto nick = App::GetInstance().GetNick()) {
+        if (glm::distance(GetPosition(), nick->GetPosition()) < (characterWidth + 35.0f) / 2) { // 35 is Nick's width
+            OnCollision(nick);
+        }
+    }
 }
 
 void RedDemon::SetState(State state) {
@@ -123,7 +123,7 @@ void RedDemon::SetState(State state) {
 
 void RedDemon::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (auto nick = std::dynamic_pointer_cast<Nick>(other)) {
-        nick->Die();
+        nick->Die(); // Enemy triggers Nick's death
     } else if (auto snowball = std::dynamic_pointer_cast<Snowball>(other)) {
         if (snowball->IsMoving()) {
             m_State = EnemyState::Dead;

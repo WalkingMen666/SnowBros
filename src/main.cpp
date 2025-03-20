@@ -12,6 +12,7 @@ int main(int, char**) {
                 app.Start();
             break;
             case App::State::UPDATE:
+            case App::State::GAMEOVER:
                 app.Update();
             break;
             case App::State::END:
