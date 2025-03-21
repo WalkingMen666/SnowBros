@@ -38,9 +38,9 @@ void App::Update() {
             LOG_INFO("Setting overlay to: {}, frame: {}", path, currentFrame);
             m_Overlay->SetImage(path);
             m_Overlay->m_Transform.translation = {0.0f, 0.0f}; // 確保居中
-            m_Overlay->m_Transform.scale = {720.0f, 720.0f};
-            m_Overlay->SetZIndex(10000);
+            m_Overlay->m_Transform.scale = {1.0f, 1.0f};
             m_Overlay->SetVisible(true);
+            m_Overlay->SetZIndex(10);
             lastFrame = currentFrame;
         }
     }
@@ -156,11 +156,11 @@ void App::SetState(State state) {
         GameWorld::GetObjects().clear();
 
         // 設置初始圖片並確保位置與可見性
-        std::string initialImage = RESOURCE_DIR "/Image/Background/Game_Over_1.png";
+        std::string initialImage = RESOURCE_DIR "/Image/Background/black/black50.png";
         LOG_INFO("Setting fresh overlay to: {}", initialImage);
         m_Overlay->SetImage(initialImage);
         m_Overlay->m_Transform.scale = {720.0f, 720.0f};
-        m_Overlay->SetZIndex(10000);
+        m_Overlay->SetZIndex(10);
         m_Overlay->SetVisible(true);
     }
 }

@@ -10,7 +10,7 @@ public:
     enum class State { STAND, WALK, JUMP, FALL, DIE }; // 新增狀態機
 
 private:
-    float m_speed = 150.0f;
+    float m_speed = 180.0f;
     float m_JumpVelocity = 0.0f;
     const float m_JumpInitialVelocity = 450.0f;
     const float m_Gravity = -800.0f;

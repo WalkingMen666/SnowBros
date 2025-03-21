@@ -77,7 +77,7 @@ private:
     const float m_FadeDuration = 4.0f;
     bool m_FadingIn = true;
     float m_GameOverTimer = 0.0f;
-    const float m_GameOverDuration = 1.0f;
+    const float m_GameOverDuration = 0.1f;
 
     std::vector<LevelConfig> m_LevelConfigs;
 };

@@ -40,7 +40,7 @@ private:
     const float m_InvincibleDuration = 2.0f;
     float m_BlinkTimer = 0.0f;
     const float m_BlinkInterval = 0.2f;
-    int m_Lives = 1;
+    int m_Lives = 3;
 
     float m_DeathVelocity = 0.0f;
     const float m_DeathInitialVelocity = 100.0f;

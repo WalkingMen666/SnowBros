@@ -23,7 +23,7 @@ void App::Start() {
     // 初始化覆蓋層
     m_Overlay = std::make_shared<BackgroundImage>();
     m_Overlay->SetImage(RESOURCE_DIR "/Image/Background/black/black255.png");
-    m_Overlay->m_Transform.scale = {720.0f, 720.0f}; // 設置縮放
+    m_Overlay->m_Transform.scale = {1.0f, 1.0f}; // 設置縮放
     m_Overlay->SetZIndex(5); // 設置 Z 軸順序
     m_Root.AddChild(m_Overlay);
 
