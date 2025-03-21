@@ -9,7 +9,7 @@
 #include "Util/Logger.hpp"
 #include "UpdatableDrawable.hpp"
 #include "GameWorld.hpp"
-#include "Enemy.hpp" // Include Enemy instead of RedDemon
+#include "Enemy.hpp"
 
 class App;
 
@@ -22,11 +22,12 @@ public:
     void Die();
     void SetState(State state);
     void SetInvincible(bool invincible);
-    void OnCollision(std::shared_ptr<Util::GameObject> other); // Collision with any GameObject
+    void OnCollision(std::shared_ptr<Util::GameObject> other);
     [[nodiscard]] State GetState() const { return m_State; }
     [[nodiscard]] bool IsAnimationFinished() const { return IfAnimationEnds(); }
     void SetDirection(bool facingRight);
     std::shared_ptr<Core::Drawable> GetDrawable() const override { return Util::GameObject::m_Drawable; }
+    float GetCharacterWidth() const { return characterWidth; } // 新增：獲取角色寬度
 
 private:
     void LoadAnimations();

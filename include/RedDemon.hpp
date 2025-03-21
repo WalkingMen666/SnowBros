@@ -7,9 +7,9 @@
 
 class RedDemon : public Enemy {
 public:
-    enum class State { STAND, WALK, JUMP, FALL, DIE }; // 新增狀態機
+    enum class State { STAND, WALK, JUMP, FALL, DIE };
 
-private:
+protected: // 改為 protected 以便基類訪問
     float m_speed = 180.0f;
     float m_JumpVelocity = 0.0f;
     const float m_JumpInitialVelocity = 450.0f;
@@ -18,22 +18,24 @@ private:
     const float characterHeight = 46.0f;
     const std::string BASE_PATH = RESOURCE_DIR "/Image/Character/Enemies/";
 
-    // 控制停滯和動作切換
-    float m_ActionTimer = 0.0f;          // 計時器，用於控制停滯時間
-    const float ACTION_DELAY = 0.5f;     // 停滯時間（0.5秒）
-    bool m_IsActing = false;             // 是否正在執行動作（跳躍或下降）
-    bool m_IsChangingDirection = false;  // 是否正在改變方向
-    Direction m_TargetDirection;         // 目標方向
-    bool m_IsOnPlatform = false;         // 是否站在平台上（非地面）
-    State m_CurrentState = State::STAND; // 當前狀態，預設為 STAND
+private:
+    float m_ActionTimer = 0.0f;
+    const float ACTION_DELAY = 0.5f;
+    bool m_IsActing = false;
+    bool m_IsChangingDirection = false;
+    Direction m_TargetDirection;
+    bool m_IsOnPlatform = false;
+    State m_CurrentState = State::STAND;
 
     void LoadAnimations();
-    void SetState(State state);          // 設置狀態並更新動畫
+    void SetState(State state);
 
 public:
     RedDemon(const glm::vec2& pos);
     void Update() override;
+    void OnHit(Bullet* bullet) override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
+    float GetCharacterWidth() const override { return characterWidth; } // 實現 GetCharacterWidth
 };
 
 #endif // RED_DEMON_HPP

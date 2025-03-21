@@ -51,10 +51,10 @@ void Nick::Update() {
         if (Util::Input::IsKeyDown(Util::Keycode::MOUSE_LB)) {
             bool nearSnowball = false;
             for (auto& obj : GameWorld::GetObjects()) {
-                if (auto snowball = std::dynamic_pointer_cast<Snowball>(obj)) {
-                    if (glm::distance(position, snowball->GetPosition()) < 50.0f) {
+                if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                    if (enemy->GetState() == EnemyState::Snowball && glm::distance(position, enemy->GetPosition()) < (GetCharacterWidth() + enemy->GetCharacterWidth()) / 2) {
                         SetState(State::KICK);
-                        snowball->Push(m_FacingRight ? Direction::Right : Direction::Left);
+                        // 這裡應將敵人轉為獨立的 Snowball 物件並踢出，後續實現
                         nearSnowball = true;
                         break;
                     }
@@ -69,23 +69,21 @@ void Nick::Update() {
 
         if (isMoving) {
             for (auto& obj : GameWorld::GetObjects()) {
-                if (auto snowball = std::dynamic_pointer_cast<Snowball>(obj)) {
-                    if (glm::distance(position, snowball->GetPosition()) < 50.0f) {
+                if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                    if (enemy->GetState() == EnemyState::Snowball && glm::distance(position, enemy->GetPosition()) < (GetCharacterWidth() + enemy->GetCharacterWidth()) / 2) {
                         SetState(State::PUSH);
-                        snowball->Roll(m_FacingRight ? Direction::Right : Direction::Left);
                         break;
                     }
                 }
             }
         }
-    }else {
-        if(m_DeathVelocity <= 0.0f) {
+    } else {
+        if (m_DeathVelocity <= 0.0f) {
             m_DeathVelocity = 0.0f;
             m_Gravity = 0.0f;
         }
         newPosition = GameWorld::map_collision_judgement(characterWidth, characterHeight, position, m_DeathVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
     }
-
 
     switch (m_State) {
         case State::SPAWN:
@@ -145,6 +143,9 @@ void Nick::Update() {
             break;
         case State::PUSH:
             if (!isMoving) SetState(State::IDLE);
+            else if (Util::Input::IsKeyDown(Util::Keycode::MOUSE_LB)) {
+                SetState(State::KICK);
+            }
             break;
         case State::KICK:
             if (IsAnimationFinished()) SetState(isMoving ? State::WALK : State::IDLE);
@@ -221,7 +222,12 @@ void Nick::Die() {
 
 void Nick::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (auto enemy = std::dynamic_pointer_cast<Enemy>(other)) {
-        Die(); // Delegate to Enemy could happen here, but we'll let Enemy call Die()
+        if (enemy->GetState() == EnemyState::Normal) {
+            // 使用動態寬度進行碰撞判斷
+            if (glm::distance(GetPosition(), enemy->GetPosition()) < (GetCharacterWidth() + enemy->GetCharacterWidth()) / 2) {
+                Die();
+            }
+        }
     }
 }
 

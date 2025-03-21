@@ -21,7 +21,8 @@ void Bullet::Update() {
 
 void Bullet::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (auto enemy = std::dynamic_pointer_cast<Enemy>(other)) {
+        LOG_DEBUG("Bullet collided with enemy at position: {}", glm::to_string(enemy->GetPosition()));
         enemy->OnHit(this);
-        GameWorld::RemoveObject(std::shared_ptr<Bullet>(this));
+        m_MarkedForRemoval = true; // 子彈擊中後標記為移除
     }
 }

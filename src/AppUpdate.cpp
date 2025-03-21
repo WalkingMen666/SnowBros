@@ -37,7 +37,7 @@ void App::Update() {
             }
             LOG_INFO("Setting overlay to: {}, frame: {}", path, currentFrame);
             m_Overlay->SetImage(path);
-            m_Overlay->m_Transform.translation = {0.0f, 0.0f}; // 確保居中
+            m_Overlay->m_Transform.translation = {0.0f, 0.0f};
             m_Overlay->m_Transform.scale = {1.0f, 1.0f};
             m_Overlay->SetVisible(true);
             m_Overlay->SetZIndex(10);
@@ -93,6 +93,11 @@ void App::Update() {
         for (auto& obj : objects) {
             obj->Update();
             if (auto bullet = std::dynamic_pointer_cast<Bullet>(obj)) {
+                for (auto& other : objects) {
+                    if (bullet != other && glm::distance(bullet->GetPosition(), other->GetPosition()) <= 50.0f) { // 子彈碰撞範圍暫時保留
+                        bullet->OnCollision(other);
+                    }
+                }
                 if (bullet->IsMarkedForRemoval()) {
                     toRemove.push_back(obj);
                 }
@@ -107,8 +112,10 @@ void App::Update() {
         if (m_Nick) {
             m_Nick->Update();
             for (auto& obj : objects) {
-                if (glm::distance(m_Nick->GetPosition(), obj->GetPosition()) <= (35.0f + 46.0f) / 2) {
-                    m_Nick->OnCollision(obj);
+                if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                    if (glm::distance(m_Nick->GetPosition(), enemy->GetPosition()) <= (m_Nick->GetCharacterWidth() + enemy->GetCharacterWidth()) / 2) {
+                        m_Nick->OnCollision(obj);
+                    }
                 }
             }
         }
@@ -143,6 +150,7 @@ void App::Update() {
     m_Root.Update();
 }
 
+// 以下保持不變
 void App::SetState(State state) {
     if (m_CurrentState == state) return;
     m_CurrentState = state;
@@ -155,7 +163,6 @@ void App::SetState(State state) {
         }
         GameWorld::GetObjects().clear();
 
-        // 設置初始圖片並確保位置與可見性
         std::string initialImage = RESOURCE_DIR "/Image/Background/black/black50.png";
         LOG_INFO("Setting fresh overlay to: {}", initialImage);
         m_Overlay->SetImage(initialImage);
