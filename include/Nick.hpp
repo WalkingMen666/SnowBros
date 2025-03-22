@@ -26,8 +26,10 @@ public:
     [[nodiscard]] State GetState() const { return m_State; }
     [[nodiscard]] bool IsAnimationFinished() const { return IfAnimationEnds(); }
     void SetDirection(bool facingRight);
-    std::shared_ptr<Core::Drawable> GetDrawable() const override { return Util::GameObject::m_Drawable; }
-    float GetCharacterWidth() const { return characterWidth; } // 新增：獲取角色寬度
+    std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }
+    float GetCharacterWidth() const { return characterWidth; }
+    float GetWidth() const override { return characterWidth; }
+    float GetHeight() const override { return characterHeight; }
 
 private:
     void LoadAnimations();
@@ -38,15 +40,10 @@ private:
     bool m_IsOnPlatform = false;
     bool m_IsInvincible = false;
     float m_InvincibleTimer = 0.0f;
-    const float m_InvincibleDuration = 2.0f;
     float m_BlinkTimer = 0.0f;
-    const float m_BlinkInterval = 0.2f;
     int m_Lives = 3;
-
     float m_DeathVelocity = 0.0f;
-    const float m_DeathInitialVelocity = 100.0f;
     float m_DeathPauseTimer = 0.0f;
-    const float m_DeathPauseDuration = 1.0f;
 
     std::shared_ptr<Util::Animation> m_SpawnAnimation;
     std::shared_ptr<Util::Animation> m_IdleLeftAnimation;
@@ -63,12 +60,16 @@ private:
     std::shared_ptr<Util::Animation> m_KickLeftAnimation;
     std::shared_ptr<Util::Animation> m_KickRightAnimation;
 
-    float m_Speed = 150.0f;
+    static constexpr float m_Speed = 150.0f;
     float m_JumpVelocity = 0.0f;
-    const float m_JumpInitialVelocity = 450.0f;
     float m_Gravity = -800.0f;
-    const float characterWidth = 35.0f;
-    const float characterHeight = 55.0f;
+    static constexpr float m_JumpInitialVelocity = 450.0f;
+    static constexpr float characterWidth = 35.0f;
+    static constexpr float characterHeight = 55.0f;
+    static constexpr float m_InvincibleDuration = 2.0f;
+    static constexpr float m_BlinkInterval = 0.2f;
+    static constexpr float m_DeathInitialVelocity = 100.0f;
+    static constexpr float m_DeathPauseDuration = 1.0f;
 };
 
 #endif // NICK_HPP

@@ -94,8 +94,23 @@ void App::Update() {
             obj->Update();
             if (auto bullet = std::dynamic_pointer_cast<Bullet>(obj)) {
                 for (auto& other : objects) {
-                    if (bullet != other && glm::distance(bullet->GetPosition(), other->GetPosition()) <= 50.0f) { // 子彈碰撞範圍暫時保留
-                        bullet->OnCollision(other);
+                    if (bullet != other) {
+                        // 修改：使用 AABB 碰撞檢測
+                        glm::vec2 bulletPos = bullet->GetPosition();
+                        glm::vec2 otherPos = other->GetPosition();
+                        float bulletLeft = bulletPos.x - bullet->GetWidth() / 2;
+                        float bulletRight = bulletPos.x + bullet->GetWidth() / 2;
+                        float bulletTop = bulletPos.y + bullet->GetHeight() / 2;
+                        float bulletBottom = bulletPos.y - bullet->GetHeight() / 2;
+                        float otherLeft = otherPos.x - other->GetWidth() / 2;
+                        float otherRight = otherPos.x + other->GetWidth() / 2;
+                        float otherTop = otherPos.y + other->GetHeight() / 2;
+                        float otherBottom = otherPos.y - other->GetHeight() / 2;
+
+                        if (bulletRight > otherLeft && bulletLeft < otherRight &&
+                            bulletTop > otherBottom && bulletBottom < otherTop) {
+                                bullet->OnCollision(other);
+                        }
                     }
                 }
                 if (bullet->IsMarkedForRemoval()) {

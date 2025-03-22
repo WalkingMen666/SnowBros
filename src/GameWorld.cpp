@@ -1,5 +1,6 @@
 #include "GameWorld.hpp"
 #include "Util/Logger.hpp"
+#include "Enemy.hpp"
 
 std::vector<std::shared_ptr<UpdatableDrawable>> GameWorld::m_Objects;
 
@@ -9,7 +10,7 @@ std::vector<std::shared_ptr<UpdatableDrawable>>& GameWorld::GetObjects() {
 
 void GameWorld::AddObject(std::shared_ptr<UpdatableDrawable> obj) {
     LOG_INFO("Adding object to GameWorld");
-    m_Objects.push_back(obj);
+    m_Objects.push_back(std::move(obj)); // 優化 1: 使用 move 減少拷貝
 }
 
 void GameWorld::RemoveObject(std::shared_ptr<UpdatableDrawable> obj) {
@@ -19,109 +20,115 @@ void GameWorld::RemoveObject(std::shared_ptr<UpdatableDrawable> obj) {
     }
 }
 
-glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float characterHeight, glm::vec2 position, float &m_JumpVelocity, float m_Gravity, float moveDistance, bool &isOnPlatform) {
-    float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
-    const float m_GroundLevel = -285.0f;
-    glm::vec2 newPosition = position;
+glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float characterHeight, glm::vec2 position,
+                                             float& m_JumpVelocity, float m_Gravity, float moveDistance, bool& isOnPlatform) {
+    static const float GROUND_LEVEL = -285.0f; // 優化 2: 常量提升為靜態常量
+    const float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f; // 優化 3: 避免重複計算
 
     auto prm = App::GetPRM();
     if (!prm) {
         LOG_ERROR("PRM is null!");
-        return newPosition;
+        return position; // 優化 4: 直接返回原始位置，避免不必要的變數
     }
     const Map& map = prm->GetMap();
 
-    float characterBottom = position.y - characterHeight / 2;
-    float characterTop = position.y + characterHeight / 2;
-    float characterLeft = position.x - characterWidth / 2;
-    float characterRight = position.x + characterWidth / 2;
+    // 優化 5: 使用結構體封裝邊界計算，提升可讀性並減少重複代碼
+    struct Bounds {
+        float bottom, top, left, right;
+    };
+    Bounds current{position.y - characterHeight / 2, position.y + characterHeight / 2,
+                   position.x - characterWidth / 2, position.x + characterWidth / 2};
 
+    // 應用重力並計算下一幀 Y 位置
     m_JumpVelocity += m_Gravity * deltaTime;
-    float nextY = newPosition.y + m_JumpVelocity * deltaTime;
-    float nextBottom = nextY - characterHeight / 2;
-    float nextTop = nextY + characterHeight / 2;
+    float nextY = position.y + m_JumpVelocity * deltaTime;
+    Bounds next{nextY - characterHeight / 2, nextY + characterHeight / 2, current.left, current.right};
 
-    if(moveDistance != 0) {
+    // 水平碰撞檢測
+    if (moveDistance != 0) {
         float nextX = position.x + moveDistance;
-        float nextLeft = nextX - characterWidth / 2;
-        float nextRight = nextX + characterWidth / 2;
+        next.left = nextX - characterWidth / 2;
+        next.right = nextX + characterWidth / 2;
 
-        // 檢查水平和垂直範圍（縮小垂直範圍至 ±5 單位）
-        int startTileX = std::max(0, std::min(static_cast<int>((std::min(characterLeft, nextLeft) + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int endTileX = std::max(0, std::min(static_cast<int>((std::max(characterRight, nextRight) + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        float minY = std::min(characterBottom, nextBottom) - 4.775f; // 下擴展 4.775 單位
-        float maxY = std::max(characterTop, nextTop) + 5.0f;       // 上擴展 5 單位
-        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - minY) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - maxY) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int startTileX = std::max(0, std::min(static_cast<int>((std::min(current.left, next.left) + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int endTileX = std::max(0, std::min(static_cast<int>((std::max(current.right, next.right) + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+        int tileYTop = std::max(0, std::min(static_cast<int>((360.0f - std::max(current.top, next.top) + 5.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+        int tileYBottom = std::max(0, std::min(static_cast<int>((360.0f - std::min(current.bottom, next.bottom) - 4.775f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
 
-        bool willCollide = false;
-        for (int tileX = startTileX; tileX <= endTileX && !willCollide; ++tileX) {
-            for (int y = tileYTop; y <= tileYBottom && !willCollide; ++y) {
+        for (int tileX = startTileX; tileX <= endTileX; ++tileX) {
+            for (int y = tileYTop; y <= tileYBottom; ++y) {
                 if (map.GetTile(tileX, y) == 2) {
                     float tileLeft = tileX * Map::TILE_SIZE - 410.0f;
                     float tileRight = tileLeft + Map::TILE_SIZE;
 
-                    // 向右移動
-                    if (moveDistance > 0) {
-                        if (characterRight <= tileLeft && nextRight > tileLeft) {
-                            willCollide = true;
-                            newPosition.x = position.x; // 停在原地
-                            break;
-                        }
-                    }
-                    // 向左移動
-                    else if (moveDistance < 0) {
-                        if (characterLeft >= tileRight && nextLeft < tileRight) {
-                            willCollide = true;
-                            newPosition.x = position.x; // 停在原地
-                            break;
-                        }
+                    if (moveDistance > 0 && current.right <= tileLeft && next.right > tileLeft) {
+                        nextX = tileLeft - characterWidth / 2;
+                        break;
+                    } else if (moveDistance < 0 && current.left >= tileRight && next.left < tileRight) {
+                        nextX = tileRight + characterWidth / 2;
+                        break;
                     }
                 }
             }
         }
-        // 若未碰撞，應用移動並檢查邊界
-        if (!willCollide) {
-            newPosition.x = nextX;
-            newPosition.x = std::clamp(nextX, -410.0f + characterWidth / 2, 410.0f - characterWidth / 2);
+        position.x = std::clamp(nextX, -410.0f + characterWidth / 2, 410.0f - characterWidth / 2); // 優化 6: 直接更新 position.x
+    }
+
+    // 垂直碰撞檢測
+    isOnPlatform = false;
+    float platformY = GROUND_LEVEL;
+    int leftTileX = std::max(0, std::min(static_cast<int>((current.left + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int rightTileX = std::max(0, std::min(static_cast<int>((current.right + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int tileYCurrent = std::max(0, std::min(static_cast<int>((360.0f - current.bottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    int tileYNext = std::max(0, std::min(static_cast<int>((360.0f - next.bottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+
+    bool foundPlatform = false;
+    for (int tileX = leftTileX; tileX <= rightTileX && !foundPlatform; ++tileX) {
+        for (int tileY = std::min(tileYCurrent, tileYNext); tileY <= std::max(tileYCurrent, tileYNext); ++tileY) {
+            if (tileY >= 0 && tileY < Map::MAP_HEIGHT && map.GetTile(tileX, tileY) == 1) {
+                float platformTop = 360.0f - tileY * Map::TILE_SIZE;
+                if (current.bottom >= platformTop && next.bottom <= platformTop) {
+                    foundPlatform = true;
+                    isOnPlatform = true;
+                    platformY = platformTop + characterHeight / 2;
+                    m_JumpVelocity = 0.0f;
+                    break;
+                }
+            }
         }
     }
 
-    // 平台碰撞檢測（僅在下落時）
-    float platformY = m_GroundLevel; // 地面高度
-    if (m_JumpVelocity <= 0) { // 下落或靜止時檢查
-        int leftTileX = std::max(0, std::min(static_cast<int>((newPosition.x - characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int rightTileX = std::max(0, std::min(static_cast<int>((newPosition.x + characterWidth / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
-        int tileYStart = std::max(0, std::min(static_cast<int>((360.0f - characterBottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-        int tileYEnd = std::max(0, std::min(static_cast<int>((360.0f - nextBottom) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    if (!foundPlatform && m_JumpVelocity <= 0) {
+        for (const auto& obj : m_Objects) { // 優化 7: 使用 const 引用避免拷貝
+            if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                if (enemy->GetState() == EnemyState::Snowball) {
+                    glm::vec2 enemyPos = enemy->GetPosition();
+                    float enemyTop = enemyPos.y + enemy->GetCharacterHeight() / 2;
+                    float enemyLeft = enemyPos.x - enemy->GetCharacterWidth() / 2;
+                    float enemyRight = enemyPos.x + enemy->GetCharacterWidth() / 2;
 
-        for (int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
-            for (int tileY = std::min(tileYStart, tileYEnd); tileY <= std::max(tileYStart, tileYEnd); ++tileY) {
-                if (tileY >= 0 && tileY < 144 && map.GetTile(tileX, tileY) == 1) {
-                    float platformTop = 360.0f - tileY * Map::TILE_SIZE;
-                    if (characterBottom >= platformTop && nextBottom <= platformTop) {
+                    if (current.bottom >= enemyTop && next.bottom <= enemyTop &&
+                        current.right > enemyLeft && current.left < enemyRight) {
+                        foundPlatform = true;
                         isOnPlatform = true;
-                        platformY = platformTop + characterHeight / 2;
+                        platformY = enemyTop + characterHeight / 2;
                         m_JumpVelocity = 0.0f;
                         break;
                     }
                 }
             }
-            if (isOnPlatform) break;
         }
     }
 
-    // 更新位置
-    if (isOnPlatform) {
-        newPosition.y = platformY;
+    if (foundPlatform) {
+        position.y = platformY;
     } else {
-        newPosition.y = nextY;
-        if (newPosition.y <= m_GroundLevel) {
-            newPosition.y = m_GroundLevel;
+        position.y = nextY;
+        if (position.y <= GROUND_LEVEL) {
+            position.y = GROUND_LEVEL;
             m_JumpVelocity = 0.0f;
             isOnPlatform = true;
         }
     }
-
-    return newPosition;
+    return position; // 優化 8: 直接返回 position，避免額外變數
 }

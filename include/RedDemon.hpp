@@ -9,13 +9,11 @@ class RedDemon : public Enemy {
 public:
     enum class State { STAND, WALK, JUMP, FALL, DIE };
 
-protected: // 改為 protected 以便基類訪問
+protected:
     float m_speed = 180.0f;
-    float m_JumpVelocity = 0.0f;
+    float m_JumpVelocity = 0.0f; // 保留：Normal 狀態使用，Snowball 狀態固定為 0
     const float m_JumpInitialVelocity = 450.0f;
-    const float m_Gravity = -800.0f;
-    const float characterWidth = 46.0f;
-    const float characterHeight = 46.0f;
+    const float m_Gravity = -800.0f; // 保留：Snowball 狀態固定使用 -800
     const std::string BASE_PATH = RESOURCE_DIR "/Image/Character/Enemies/";
 
 private:
@@ -29,13 +27,16 @@ private:
 
     void LoadAnimations();
     void SetState(State state);
+    std::pair<float, float> GetSizeForMeltStage() const; // 修改：統一返回 42x44
 
 public:
     RedDemon(const glm::vec2& pos);
     void Update() override;
     void OnHit(Bullet* bullet) override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
-    float GetCharacterWidth() const override { return characterWidth; } // 實現 GetCharacterWidth
+    float GetCharacterWidth() const override { return GetSizeForMeltStage().first; }
+    float GetCharacterHeight() const override { return GetSizeForMeltStage().second; }
+    float GetJumpVelocity() const override { return m_JumpVelocity; }
 };
 
 #endif // RED_DEMON_HPP
