@@ -2,24 +2,26 @@
 #define PHASE_MANGER_HPP
 
 #include "Util/GameObject.hpp"
-#include "Character.hpp"
 #include "BackgroundImage.hpp"
+#include "Map.hpp"
 
 class PhaseResourceManger {
 public:
-    PhaseResourceManger();
+    PhaseResourceManger(); // 構造函數
 
-    [[nodiscard]] std::vector<std::shared_ptr<Util::GameObject>> GetChildren() const {
-        return {m_Background};
-    }
+    int GetPhase() const;                // 關卡進度
+    Map& GetMap();                       // 地圖資訊
+    const Map& GetMap() const;           // 唯讀地圖資訊
 
-    void NextPhase();
+    void NextPhase();                    // 下一關
+    [[nodiscard]] std::vector<std::shared_ptr<Util::GameObject>> GetChildren() const; // 取得子物件
 
 private:
-    std::shared_ptr<BackgroundImage> m_Background;
+    void LoadPhase(int phase);  // 讀取關卡資源
 
-    int m_Phase = 1;
+    std::shared_ptr<BackgroundImage> m_Background;
+    Map m_Map;
+    int m_Phase = -1;
 };
 
-
-#endif //PHASE_MANGER_HPP
+#endif // PHASE_MANGER_HPP

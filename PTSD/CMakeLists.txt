@@ -28,6 +28,8 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Dependencies.cmake)
 
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(SRC_FILES
+    ${SRC_DIR}/config.cpp
+
     ${SRC_DIR}/Core/Context.cpp
     ${SRC_DIR}/Core/DebugMessageCallback.cpp
     ${SRC_DIR}/Core/VertexArray.cpp
@@ -52,6 +54,7 @@ set(SRC_FILES
     ${SRC_DIR}/Util/Color.cpp
     ${SRC_DIR}/Util/Animation.cpp
     ${SRC_DIR}/Util/MissingTexture.cpp
+    ${SRC_DIR}/Util/Position.cpp
 )
 set(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(INCLUDE_FILES
@@ -70,6 +73,8 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/Core/Texture.hpp
     ${INCLUDE_DIR}/Core/TextureUtils.hpp
     ${INCLUDE_DIR}/Core/Drawable.hpp
+    ${INCLUDE_DIR}/Core/MissingFontTextureBase64.hpp
+    ${INCLUDE_DIR}/Core/MissingImageTextureBase64.hpp
 
     ${INCLUDE_DIR}/Util/LoadTextFile.hpp
     ${INCLUDE_DIR}/Util/Logger.hpp
@@ -88,6 +93,7 @@ set(INCLUDE_FILES
     ${INCLUDE_DIR}/Util/MissingTexture.hpp
     ${INCLUDE_DIR}/Util/Base64.hpp
     ${INCLUDE_DIR}/Util/Animation.hpp
+    ${INCLUDE_DIR}/Util/Position.hpp
 )
 set(EXAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/example)
 set(EXAMPLE_FILES
@@ -107,6 +113,7 @@ set(TEST_FILES
     ${TEST_DIR}/SimpleTest.cpp
     ${TEST_DIR}/NotSimpleTest.cpp
     ${TEST_DIR}/TransformTest.cpp
+    ${TEST_DIR}/PositionTest.cpp
 )
 
 add_library(PTSD STATIC
@@ -165,7 +172,6 @@ enable_testing()
 
 add_executable(Tests EXCLUDE_FROM_ALL
     ${TEST_FILES}
-    ${SRC_FILES}
 )
 target_link_libraries(Tests
     PTSD
@@ -183,7 +189,6 @@ target_compile_options(Tests PRIVATE
 
 add_executable(AudioTest EXCLUDE_FROM_ALL
     ${TEST_DIR}/Interactive/Audio.cpp
-    ${SRC_FILES}
 )
 target_link_libraries(AudioTest
     PTSD
