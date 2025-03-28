@@ -1,5 +1,4 @@
 #include "GameWorld.hpp"
-#include "Util/Logger.hpp"
 #include "Enemy.hpp"
 
 std::vector<std::shared_ptr<UpdatableDrawable>> GameWorld::m_Objects;
@@ -9,8 +8,7 @@ std::vector<std::shared_ptr<UpdatableDrawable>>& GameWorld::GetObjects() {
 }
 
 void GameWorld::AddObject(std::shared_ptr<UpdatableDrawable> obj) {
-    LOG_INFO("Adding object to GameWorld");
-    m_Objects.push_back(std::move(obj)); // 優化 1: 使用 move 減少拷貝
+    m_Objects.push_back(std::move(obj));
 }
 
 void GameWorld::RemoveObject(std::shared_ptr<UpdatableDrawable> obj) {
@@ -22,29 +20,25 @@ void GameWorld::RemoveObject(std::shared_ptr<UpdatableDrawable> obj) {
 
 glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float characterHeight, glm::vec2 position,
                                              float& m_JumpVelocity, float m_Gravity, float moveDistance, bool& isOnPlatform) {
-    static const float GROUND_LEVEL = -285.0f; // 優化 2: 常量提升為靜態常量
-    const float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f; // 優化 3: 避免重複計算
+    static const float GROUND_LEVEL = -285.0f;
+    const float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
 
     auto prm = App::GetPRM();
     if (!prm) {
-        LOG_ERROR("PRM is null!");
-        return position; // 優化 4: 直接返回原始位置，避免不必要的變數
+        return position;
     }
     const Map& map = prm->GetMap();
 
-    // 優化 5: 使用結構體封裝邊界計算，提升可讀性並減少重複代碼
     struct Bounds {
         float bottom, top, left, right;
     };
     Bounds current{position.y - characterHeight / 2, position.y + characterHeight / 2,
                    position.x - characterWidth / 2, position.x + characterWidth / 2};
 
-    // 應用重力並計算下一幀 Y 位置
     m_JumpVelocity += m_Gravity * deltaTime;
     float nextY = position.y + m_JumpVelocity * deltaTime;
     Bounds next{nextY - characterHeight / 2, nextY + characterHeight / 2, current.left, current.right};
 
-    // 水平碰撞檢測
     if (moveDistance != 0) {
         float nextX = position.x + moveDistance;
         next.left = nextX - characterWidth / 2;
@@ -71,10 +65,9 @@ glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float charact
                 }
             }
         }
-        position.x = std::clamp(nextX, -410.0f + characterWidth / 2, 410.0f - characterWidth / 2); // 優化 6: 直接更新 position.x
+        position.x = std::clamp(nextX, -410.0f + characterWidth / 2, 410.0f - characterWidth / 2);
     }
 
-    // 垂直碰撞檢測
     isOnPlatform = false;
     float platformY = GROUND_LEVEL;
     int leftTileX = std::max(0, std::min(static_cast<int>((current.left + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
@@ -99,7 +92,7 @@ glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float charact
     }
 
     if (!foundPlatform && m_JumpVelocity <= 0) {
-        for (const auto& obj : m_Objects) { // 優化 7: 使用 const 引用避免拷貝
+        for (const auto& obj : m_Objects) {
             if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
                 if (enemy->GetState() == EnemyState::Snowball) {
                     glm::vec2 enemyPos = enemy->GetPosition();
@@ -130,5 +123,5 @@ glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float charact
             isOnPlatform = true;
         }
     }
-    return position; // 優化 8: 直接返回 position，避免額外變數
+    return position;
 }

@@ -4,17 +4,20 @@
 #include "Enemy.hpp"
 #include "Util/Time.hpp"
 #include "GameWorld.hpp"
+#include "Snowball.hpp"
+#include <memory>  // 添加這個以使用 enable_shared_from_this
 
-class RedDemon : public Enemy {
+class RedDemon : public Enemy, public std::enable_shared_from_this<RedDemon> {
 public:
     enum class State { STAND, WALK, JUMP, FALL, DIE };
 
 protected:
     float m_speed = 180.0f;
-    float m_JumpVelocity = 0.0f; // 保留：Normal 狀態使用，Snowball 狀態固定為 0
+    float m_JumpVelocity = 0.0f;
     const float m_JumpInitialVelocity = 450.0f;
-    const float m_Gravity = -800.0f; // 保留：Snowball 狀態固定使用 -800
+    const float m_Gravity = -800.0f;
     const std::string BASE_PATH = RESOURCE_DIR "/Image/Character/Enemies/";
+    std::shared_ptr<Snowball> m_Snowball;
 
 private:
     float m_ActionTimer = 0.0f;
@@ -32,7 +35,7 @@ private:
 public:
     RedDemon(const glm::vec2& pos);
     void Update() override;
-    void OnHit(Bullet* bullet) override;
+    void OnHit() override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
     float GetCharacterWidth() const override { return GetSizeForMeltStage().first; }
     float GetCharacterHeight() const override { return GetSizeForMeltStage().second; }

@@ -14,7 +14,7 @@ Enemy::Enemy(const std::string& imagePath, const glm::vec2& pos)
     m_Drawable = std::make_shared<Util::Image>(imagePath);
 }
 
-void Enemy::OnHit(Bullet* bullet) {
+void Enemy::OnHit() {
     if (m_State == EnemyState::Normal) {
         m_HitCount++;
         LOG_INFO("Enemy hit, m_HitCount: {}", m_HitCount);

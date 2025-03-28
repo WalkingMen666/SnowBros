@@ -29,7 +29,7 @@ public:
     Enemy(const std::string& imagePath, const glm::vec2& pos);
     virtual ~Enemy() = default;
     virtual void Update() = 0;
-    virtual void OnHit(class Bullet* bullet);
+    virtual void OnHit();
     virtual void OnCollision(std::shared_ptr<Util::GameObject> other) = 0;
     void SetAnimation(const std::string& key);
     EnemyState GetState() const { return m_State; }

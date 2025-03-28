@@ -3,7 +3,6 @@
 #include "Snowball.hpp"
 #include "Map.hpp"
 #include "App.hpp"
-#include "Util/Logger.hpp"
 #include <cstdlib>
 #include <ctime>
 
@@ -19,9 +18,6 @@ void RedDemon::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     glm::vec2 position = GetPosition();
     glm::vec2 newPosition = position;
-
-    LOG_DEBUG("RedDemon Update - State: {}, Position: ({}, {}), JumpVelocity: {}, IsOnPlatform: {}",
-              static_cast<int>(m_State), position.x, position.y, m_JumpVelocity, m_IsOnPlatform);
 
     if (m_State == EnemyState::Normal) {
         m_IsOnPlatform = false;
@@ -94,60 +90,26 @@ void RedDemon::Update() {
         }
         SetPosition(newPosition);
     } else if (m_State == EnemyState::Snowball) {
-        auto [width, height] = GetSizeForMeltStage();
-        float snowballGravity = -800.0f;
-        float moveDistance = 0.0f;
+        if (m_Snowball) {
+            m_Snowball->Update();
+            SetVisible(false);
+            SetPosition(m_Snowball->GetPosition());
+            if (m_Snowball->IsMelted()) {
+                m_State = EnemyState::Normal;
+                m_HitCount = 0;
+                m_MeltStage = 0;
+                SetState(State::STAND);
+                SetVisible(true);
 
-        for (auto& obj : GameWorld::GetObjects()) {
-            if (auto otherEnemy = std::dynamic_pointer_cast<Enemy>(obj)) {
-                if (otherEnemy.get() != this && otherEnemy->GetState() == EnemyState::Snowball) {
-                    float distance = glm::distance(position, otherEnemy->GetPosition());
-                    if (distance < (width + otherEnemy->GetCharacterWidth()) / 2) {
-                        moveDistance = 0.0f;
-                        LOG_DEBUG("Snowball collision detected - Position: ({}, {})", position.x, position.y);
-                        break;
-                    }
-                }
+                float heightDiff = (GetCharacterHeight() - m_Snowball->GetHeight()) / 2;
+                newPosition = m_Snowball->GetPosition();
+                newPosition.y += heightDiff;
+                newPosition = GameWorld::map_collision_judgement(GetCharacterWidth(), GetCharacterHeight(), newPosition, m_JumpVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
+                SetPosition(newPosition);
+
+                App::GetInstance().AddRemovingObhect(m_Snowball);
+                m_Snowball = nullptr;
             }
-        }
-
-        // 修改：確保 m_JumpVelocity 在空中持續累積
-        if (!m_IsOnPlatform) {
-            m_JumpVelocity += snowballGravity * deltaTime;
-            LOG_INFO("Snowball falling - JumpVelocity: {}", m_JumpVelocity);
-        } else {
-            m_JumpVelocity = 0.0f;
-        }
-        LOG_INFO("Snowball Pos, m_JumpVelocity, m_IsOnPlatform: {}, {}, {}", position, m_JumpVelocity, m_IsOnPlatform);
-        newPosition = GameWorld::map_collision_judgement(width, height, position, m_JumpVelocity, snowballGravity, moveDistance, m_IsOnPlatform);
-        LOG_INFO("TEST");
-        bool isBeingPushed = false;
-        if (auto nick = App::GetInstance().GetNick()) {
-            if (glm::distance(position, nick->GetPosition()) < (nick->GetCharacterWidth() + width) / 2 &&
-                (Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D))) {
-                isBeingPushed = true;
-            }
-        }
-        if (!isBeingPushed) {
-            m_MeltTimer += deltaTime;
-        }
-
-        if (m_MeltTimer >= m_MeltDuration / 2 && m_MeltStage < 3) {
-            SetMeltStage(m_MeltStage + 1);
-        }
-        if (m_MeltStage == 3 && m_MeltTimer >= m_MeltDuration) {
-            m_State = EnemyState::Normal;
-            m_HitCount = 0;
-            m_MeltStage = 0;
-            SetState(State::STAND);
-            auto [newWidth, newHeight] = GetSizeForMeltStage();
-            float heightDiff = (newHeight - height) / 2;
-            newPosition.y += heightDiff;
-            newPosition = GameWorld::map_collision_judgement(newWidth, newHeight, newPosition, m_JumpVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
-            SetPosition(newPosition);
-            LOG_DEBUG("RedDemon restored to Normal state, adjusted Position: ({}, {})", newPosition.x, newPosition.y);
-        } else {
-            SetPosition(newPosition);
         }
     } else if (m_State == EnemyState::Dead) {
         if (std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->GetState() == Util::Animation::State::ENDED) {
@@ -162,36 +124,23 @@ void RedDemon::Update() {
     }
 }
 
-void RedDemon::OnHit(Bullet* bullet) {
+void RedDemon::OnHit() {
     if (m_State == EnemyState::Normal) {
-        m_HitCount++;
-        LOG_DEBUG("RedDemon hit, m_HitCount: {}", m_HitCount);
-        if (m_HitCount >= m_MaxHits) {
+        if (++m_HitCount >= m_MaxHits) {
             m_State = EnemyState::Snowball;
-            glm::vec2 position = GetPosition();
-            auto [width, height] = GetSizeForMeltStage();
-            bool isOnPlatform = m_IsOnPlatform;
-            // 修改：在 Snowball 狀態下固定參數
-            m_JumpVelocity = 0.0f; // 固定為 0
-            float snowballGravity = -800.0f; // 固定為 -800
-            glm::vec2 newPosition = GameWorld::map_collision_judgement(width, height, position, m_JumpVelocity, snowballGravity, 0.0f, isOnPlatform);
-            LOG_DEBUG("Turning to Snowball - Position: ({}, {}), IsOnPlatform: {}", position.x, position.y, isOnPlatform);
-            if (isOnPlatform) {
-                SetPosition(newPosition);
-            }
-            SetMeltStage(3);
+            m_Snowball = std::make_shared<Snowball>(GetPosition());
+            App::GetInstance().AddPendingObject(m_Snowball);
+            m_JumpVelocity = 0.0f;
+            m_HitCount = 0;
+            SetVisible(false);
         }
-    } else if (m_State == EnemyState::Snowball && m_MeltStage > 1) {
-        SetMeltStage(m_MeltStage - 1);
+    } else if (m_State == EnemyState::Snowball) {
+        m_Snowball->OnHit();
     }
 }
 
-// 修改：統一雪球大小為 42x44
 std::pair<float, float> RedDemon::GetSizeForMeltStage() const {
-    if (m_State != EnemyState::Snowball) {
-        return {46.0f, 46.0f};
-    }
-    return {42.0f, 44.0f}; // 修改：所有雪球狀態統一為 42x44
+    return m_State == EnemyState::Snowball ? std::make_pair(42.0f, 44.0f) : std::make_pair(46.0f, 46.0f);
 }
 
 void RedDemon::SetState(State state) {
@@ -221,11 +170,6 @@ void RedDemon::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (auto nick = std::dynamic_pointer_cast<Nick>(other)) {
         if (m_State == EnemyState::Normal) {
             nick->Die();
-        }
-    } else if (auto snowball = std::dynamic_pointer_cast<Snowball>(other)) {
-        if (snowball->IsMoving()) {
-            m_State = EnemyState::Dead;
-            SetState(State::DIE);
         }
     }
 }

@@ -10,6 +10,8 @@
 #include <memory>
 #include <vector>
 
+#include "UpdatableDrawable.hpp"
+
 class Nick;
 class Enemy;
 
@@ -49,6 +51,12 @@ public:
     State GetCurrentState() const { return m_CurrentState; }
     int GetCurrentLevel() const { return m_CurrentLevel; }
     std::shared_ptr<Nick> GetNick() const { return m_Nick; } // New method to access Nick
+    void AddPendingObject(const std::shared_ptr<UpdatableDrawable>& obj) {
+        m_PendingObjects.push_back(obj);
+    }
+    void AddRemovingObhect(const std::shared_ptr<UpdatableDrawable>& obj) {
+        m_RemovingObjects.push_back(obj);
+    }
 
 private:
     App();
@@ -72,6 +80,8 @@ private:
     std::shared_ptr<Nick> m_Nick;
     std::shared_ptr<PhaseResourceManger> m_PRM;
     std::shared_ptr<BackgroundImage> m_Overlay;
+    std::vector<std::shared_ptr<UpdatableDrawable>> m_PendingObjects;  // 新增待添加物件的容器
+    std::vector<std::shared_ptr<UpdatableDrawable>> m_RemovingObjects;  // 新增待刪除物件的容器
 
     float m_FadeTimer = 0.0f;
     const float m_FadeDuration = 4.0f;

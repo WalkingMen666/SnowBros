@@ -95,7 +95,6 @@ void App::Update() {
             if (auto bullet = std::dynamic_pointer_cast<Bullet>(obj)) {
                 for (auto& other : objects) {
                     if (bullet != other) {
-                        // 修改：使用 AABB 碰撞檢測
                         glm::vec2 bulletPos = bullet->GetPosition();
                         glm::vec2 otherPos = other->GetPosition();
                         float bulletLeft = bulletPos.x - bullet->GetWidth() / 2;
@@ -109,7 +108,10 @@ void App::Update() {
 
                         if (bulletRight > otherLeft && bulletLeft < otherRight &&
                             bulletTop > otherBottom && bulletBottom < otherTop) {
-                                bullet->OnCollision(other);
+                            bullet->OnCollision(other);
+                            if (auto snowball = std::dynamic_pointer_cast<Snowball>(other)) {
+                                snowball->OnHit();  // 雪球被擊中
+                            }
                         }
                     }
                 }
@@ -139,6 +141,18 @@ void App::Update() {
             GameWorld::RemoveObject(obj);
             m_Root.RemoveChild(obj);
         }
+
+        // 添加待處理的物件
+        for (const auto& obj : m_PendingObjects) {
+            GameWorld::AddObject(obj);
+            m_Root.AddChild(std::static_pointer_cast<Util::GameObject>(obj));
+        }
+        for (const auto& obj : m_RemovingObjects) {
+            GameWorld::RemoveObject(obj);
+            m_Root.RemoveChild(obj);
+        }
+        m_PendingObjects.clear();
+        m_RemovingObjects.clear();
 
         if (GameWorld::GetObjects().empty() && m_Nick && m_Nick->GetState() != Nick::State::DIE) {
             if (m_CurrentLevel < 30) {

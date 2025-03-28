@@ -21,10 +21,6 @@ void Nick::Update() {
     m_IsOnPlatform = false;
     const bool isMoving = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D);
 
-    static bool wasPushing = false;
-    static float pushExitTimer = 0.0f;
-    static constexpr float PUSH_EXIT_DELAY = 0.2f;
-
     if (m_State != State::DIE) {
         if (m_IsInvincible) {
             m_InvincibleTimer -= deltaTime;
@@ -58,61 +54,24 @@ void Nick::Update() {
             }
             if (!nearSnowball) {
                 SetState(State::ATTACK);
-                GameWorld::AddObject(std::make_shared<Bullet>(position, m_FacingRight ? Direction::Right : Direction::Left));
-                App::GetRoot().AddChild(GameWorld::GetObjects().back());
+                App::GetInstance().AddPendingObject(std::make_shared<Bullet>(position, m_FacingRight ? Direction::Right : Direction::Left));
             }
         }
 
         bool isPushing = false;
-        if (isMoving) {
-            for (const auto& obj : GameWorld::GetObjects()) {
-                if (const auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
-                    if (enemy->GetState() == EnemyState::Snowball && glm::distance(position, enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
-                        glm::vec2 enemyPos = enemy->GetPosition();
-                        float enemyMoveDistance = moveDistance;
-                        bool enemyOnPlatform = false;
-                        float dummyVelocity = 0.0f;
-                        const glm::vec2 newEnemyPos = GameWorld::map_collision_judgement(enemy->GetCharacterWidth(), enemy->GetCharacterHeight(), enemyPos, dummyVelocity, -800.0f, enemyMoveDistance, enemyOnPlatform);
-
-                        const float nickRight = position.x + characterWidth / 2;
-                        const float nickLeft = position.x - characterWidth / 2;
-
-                        const bool movingRight = moveDistance > 0;
-                        const bool movingLeft = moveDistance < 0;
-                        const bool nickOnLeft = position.x < enemyPos.x;
-                        const bool nickOnRight = position.x > enemyPos.x;
-
-                        if ((movingRight && nickOnLeft) || (movingLeft && nickOnRight)) {
-                            isPushing = true;
-                            enemy->SetPosition(newEnemyPos);
-                            const float newEnemyRight = newEnemyPos.x + enemy->GetCharacterWidth() / 2;
-                            const float newEnemyLeft = newEnemyPos.x - enemy->GetCharacterWidth() / 2;
-                            if (movingRight && nickRight > newEnemyLeft) position.x = newEnemyLeft - characterWidth / 2;
-                            else if (movingLeft && nickLeft < newEnemyRight) position.x = newEnemyRight + characterWidth / 2;
-                        }
-                        break;
-                    }
+        for (const auto& obj : GameWorld::GetObjects()) {
+            if (const auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                if (isMoving && enemy->GetState() == EnemyState::Snowball && glm::distance(position, enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
+                    isPushing = true;
+                    break;
                 }
             }
         }
 
-        if (!m_IsOnPlatform && m_JumpVelocity != 0.0f) {
-            LOG_DEBUG("Nick falling with snowball - JumpVelocity: {}", m_JumpVelocity);
-        }
-
-        if (isPushing) {
+        if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) {
+            SetState(State::JUMP);
+        } else if (isPushing) {
             SetState(State::PUSH);
-            wasPushing = true;
-            pushExitTimer = 0.0f;
-        } else if (wasPushing) {
-            pushExitTimer += deltaTime;
-            if (pushExitTimer >= PUSH_EXIT_DELAY) {
-                wasPushing = false;
-                if (isMoving && m_State != State::WALK && m_State != State::JUMP) SetState(State::WALK);
-                else if (!isMoving && m_State != State::IDLE && m_State != State::JUMP && m_State != State::SPAWN) SetState(State::IDLE);
-            } else {
-                SetState(State::PUSH);
-            }
         } else {
             if (isMoving && m_State != State::WALK && m_State != State::JUMP) SetState(State::WALK);
             else if (!isMoving && m_State != State::IDLE && m_State != State::JUMP && m_State != State::SPAWN) SetState(State::IDLE);
@@ -124,6 +83,7 @@ void Nick::Update() {
         }
         position = GameWorld::map_collision_judgement(characterWidth, characterHeight, position, m_DeathVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
     }
+
     switch (m_State) {
         case State::SPAWN:
             if (IsAnimationFinished()) {
@@ -161,14 +121,14 @@ void Nick::Update() {
                         SetState(State::SPAWN);
                         position = {0.0f, -285.0f};
                     } else {
-                        LOG_INFO("Game Over");
                         App::GetInstance().SetState(App::State::GAMEOVER);
                     }
                 }
             }
             break;
         case State::PUSH:
-            if (!isMoving) SetState(State::IDLE);
+            if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) SetState(State::JUMP);
+            else if (!isMoving) SetState(State::IDLE);
             else if (Util::Input::IsKeyDown(Util::Keycode::MOUSE_LB)) SetState(State::KICK);
             break;
         case State::KICK:
@@ -182,12 +142,12 @@ void Nick::SetState(State state) {
     if (m_State == state) return;
     m_State = state;
 
-    if (state == State::JUMP) m_JumpVelocity = m_JumpInitialVelocity;
-    else if (state == State::DIE) {
+    if (state == State::JUMP) {
+        m_JumpVelocity = m_JumpInitialVelocity;
+    } else if (state == State::DIE) {
         m_DeathVelocity = m_DeathInitialVelocity;
         m_Gravity = -50.0f;
     }
-
     SwitchAnimation(state, state == State::IDLE || state == State::WALK || state == State::PUSH);
 }
 
@@ -221,7 +181,7 @@ void Nick::SwitchAnimation(State state, bool looping) {
     switch (state) {
         case State::SPAWN: animation = m_SpawnAnimation; break;
         case State::IDLE: animation = m_FacingRight ? m_IdleRightAnimation : m_IdleLeftAnimation; break;
-        case State::WALK: animation = m_FacingRight ? m_WalkRightAnimation : m_WalkLeftAnimation; break;
+        case State::WALK: animation = m_FacingRight ? m_WalkRightAnimation : m_IdleLeftAnimation; break;
         case State::ATTACK: animation = m_FacingRight ? m_AttackRightAnimation : m_AttackLeftAnimation; break;
         case State::JUMP: animation = m_FacingRight ? m_JumpRightAnimation : m_JumpLeftAnimation; break;
         case State::DIE: animation = m_DieAnimation; break;
@@ -260,8 +220,8 @@ void Nick::LoadAnimations() {
     m_WalkRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_walk_right_1.png", basePath + "nick_walk_right_2.png", basePath + "nick_walk_right_3.png"}, false, 200, true, 0);
     m_AttackLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_att_left_1.png", basePath + "nick_att_left_2.png"}, false, 200, false, 200);
     m_AttackRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_att_right_1.png", basePath + "nick_att_right_2.png"}, false, 200, false, 200);
-    m_JumpLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png"}, false, 250, false, 0);
-    m_JumpRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_right_1.png", basePath + "nick_jump_right_2.png", basePath + "nick_jump_right_3.png", basePath + "nick_jump_right_4.png"}, false, 250, false, 0);
+    m_JumpLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png", basePath + "nick_jump_left_1.png"}, false, 250, false, 0);
+    m_JumpRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_right_1.png", basePath + "nick_jump_right_2.png", basePath + "nick_jump_right_3.png", basePath + "nick_jump_right_4.png", basePath + "nick_jump_right_1.png"}, false, 250, false, 0);
     m_DieAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_die_1.png", basePath + "nick_die_2.png", basePath + "nick_die_3.png", basePath + "nick_die_4.png"}, false, 400, false, 0);
     m_PushLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_left_1.png", basePath + "nick_push_left_2.png", basePath + "nick_push_left_3.png"}, false, 200, true, 0);
     m_PushRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_right_1.png", basePath + "nick_push_right_2.png", basePath + "nick_push_right_3.png"}, false, 200, true, 0);

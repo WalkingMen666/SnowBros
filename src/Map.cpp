@@ -1,7 +1,6 @@
 #include "Map.hpp"
 #include <fstream>
 #include <stdexcept>
-#include "Util/Logger.hpp"
 
 void Map::LoadFromFile(const std::string& filename) {
     std::ifstream file(filename);
@@ -9,7 +8,6 @@ void Map::LoadFromFile(const std::string& filename) {
         throw std::runtime_error("Failed to open map file: " + filename);
     }
 
-    LOG_DEBUG("Started loading map from file: {}", filename);
     m_TileMap.clear();
     std::string line;
     int row = 0;
@@ -31,13 +29,10 @@ void Map::LoadFromFile(const std::string& filename) {
         m_TileMap.push_back(std::vector<int>(MAP_WIDTH, 0));
     }
     file.close();
-    LOG_DEBUG("Finished loading map from file: {} with {} rows", filename, m_TileMap.size());
 }
 
 void Map::LoadFromData(const std::vector<std::vector<int>>& data) {
-    LOG_DEBUG("Loading map from data with {} rows", data.size());
     m_TileMap = data;
-    // 確保地圖尺寸正確
     while (m_TileMap.size() < MAP_HEIGHT) {
         m_TileMap.push_back(std::vector<int>(MAP_WIDTH, 0));
     }
@@ -46,7 +41,6 @@ void Map::LoadFromData(const std::vector<std::vector<int>>& data) {
             row.push_back(0);
         }
     }
-    LOG_DEBUG("Finished loading map from data, final size: {}x{}", m_TileMap.size(), m_TileMap[0].size());
 }
 
 int Map::GetTile(int x, int y) const {

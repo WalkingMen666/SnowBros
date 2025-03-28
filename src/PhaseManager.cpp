@@ -1,5 +1,4 @@
 #include "PhaseResourceManger.hpp"
-#include "Util/Logger.hpp"
 #include "Util/Input.hpp"
 
 PhaseResourceManger::PhaseResourceManger() {
@@ -22,27 +21,22 @@ const Map& PhaseResourceManger::GetMap() const {
 void PhaseResourceManger::NextPhase() {
     m_Phase++;
     LoadPhase(m_Phase);
-    LOG_DEBUG("Switched to Phase: {}", m_Phase);
 }
 
-[[nodiscard]] std::vector<std::shared_ptr<Util::GameObject>> PhaseResourceManger::GetChildren() const {
+std::vector<std::shared_ptr<Util::GameObject>> PhaseResourceManger::GetChildren() const {
     return {m_Background};
 }
 
 void PhaseResourceManger::LoadPhase(int phase) {
     std::string filename = RESOURCE_DIR "/maps/phase" + std::to_string(phase) + ".map";
-    LOG_DEBUG("Attempting to load map file: {}", filename);
     try {
         m_Map.LoadFromFile(filename);
-        LOG_DEBUG("Successfully loaded map file for phase {}", phase);
         m_Background->NextPhase(phase);
-    } catch (const std::exception& e) {
-        LOG_ERROR("Failed to load phase {}: {}", phase, e.what());
+    } catch (const std::exception&) {
         m_Map = Map();
         std::vector<std::vector<int>> defaultMap(Map::MAP_HEIGHT, std::vector<int>(Map::MAP_WIDTH, 0));
         defaultMap[Map::MAP_HEIGHT - 1] = std::vector<int>(Map::MAP_WIDTH, 1); // 底部設為地面
         m_Map.LoadFromData(defaultMap);
-        LOG_DEBUG("Loaded default in-memory map for phase {}", phase);
         m_Background->NextPhase(phase);
     }
 }

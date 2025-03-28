@@ -30,6 +30,7 @@ public:
     float GetCharacterWidth() const { return characterWidth; }
     float GetWidth() const override { return characterWidth; }
     float GetHeight() const override { return characterHeight; }
+    float GetSpeed() const { return m_Speed; }
 
 private:
     void LoadAnimations();

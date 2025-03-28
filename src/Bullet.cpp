@@ -23,8 +23,7 @@ void Bullet::Update() {
 
 void Bullet::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (const auto enemy = std::dynamic_pointer_cast<Enemy>(other)) {
-        LOG_INFO("Bullet collided with enemy at position: {}", glm::to_string(enemy->GetPosition()));
-        enemy->OnHit(this);
+        enemy->OnHit();
         m_MarkedForRemoval = true;
     }
 }
