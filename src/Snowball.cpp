@@ -11,62 +11,75 @@ Snowball::Snowball(const glm::vec2& initialPosition) {
 
 void Snowball::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
-    float width = 42.0f;
-    float height = 44.0f;
     glm::vec2 position = m_Transform.translation;
-
     bool isBeingPushed = false;
     float moveDistance = 0.0f;
+
     if (auto nick = App::GetInstance().GetNick()) {
         float nickSpeed = nick->GetSpeed();
         glm::vec2 nickPos = nick->GetPosition();
         float distance = glm::distance(position, nickPos);
-        float collisionThreshold = (nick->GetCharacterWidth() + width) / 2;
+        float collisionThreshold = (nick->GetCharacterWidth() + m_Width) / 2;
 
-        if (distance < collisionThreshold) {
-            if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
-                moveDistance = -nickSpeed * deltaTime;
-                isBeingPushed = true;
-            } else if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
-                moveDistance = nickSpeed * deltaTime;
-                isBeingPushed = true;
+        if(m_SnowballState == SnowballState::Kicked || m_SnowballState == SnowballState::Killed) {
+            int IsOnEdge = 0;
+            m_RollingTimer += deltaTime;
+            float moveDistance = (m_Direction == Direction::Right) ? m_RollingSpeed : -m_RollingSpeed;
+            position = CalculatePosition(m_Width, m_Height, moveDistance * deltaTime);
+
+            if (position.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - 46.0f) / 2 || position.x <= (-Map::MAP_WIDTH * Map::TILE_SIZE + 46.0f) / 2) {
+                m_Direction = (m_Direction == Direction::Right) ? Direction::Left : Direction::Right;
+                ++IsOnEdge;
             }
-        }
-
-        if (isBeingPushed) {
-            bool snowballOnPlatform = false;
-            float dummyVelocity = 0.0f;
-            glm::vec2 newPosition = GameWorld::map_collision_judgement(
-                width, height, position, dummyVelocity, -800.0f, moveDistance, snowballOnPlatform);
-
-            float nickRight = nickPos.x + nick->GetCharacterWidth() / 2;
-            float nickLeft = nickPos.x - nick->GetCharacterWidth() / 2;
-            float snowballRight = newPosition.x + width / 2;
-            float snowballLeft = newPosition.x - width / 2;
-
-            bool movingRight = moveDistance > 0;
-            bool movingLeft = moveDistance < 0;
-            bool nickOnLeft = nickPos.x < position.x;
-            bool nickOnRight = nickPos.x > position.x;
-
-            if ((movingRight && nickOnLeft) || (movingLeft && nickOnRight)) {
-                position = newPosition;
-                if (movingRight && nickRight > snowballLeft) {
-                    nick->SetPosition({snowballLeft - nick->GetCharacterWidth() / 2, nickPos.y});
-                } else if (movingLeft && nickLeft < snowballRight) {
-                    nick->SetPosition({snowballRight + nick->GetCharacterWidth() / 2, nickPos.y});
+            LOG_INFO("m_RollingTimer: {}", m_RollingTimer);
+            if(m_RollingTimer >= m_RollingDuration || (position.y <= -285.0f && IsOnEdge > 1)) {
+                m_SnowballState = SnowballState::Killed;
+            }
+        }else {
+            if (distance < collisionThreshold) {
+                if (Util::Input::IsKeyPressed(Util::Keycode::A)) {
+                    moveDistance = -nickSpeed * deltaTime;
+                    isBeingPushed = true;
+                } else if (Util::Input::IsKeyPressed(Util::Keycode::D)) {
+                    moveDistance = nickSpeed * deltaTime;
+                    isBeingPushed = true;
                 }
-            } else {
-                isBeingPushed = false;
+            }
+
+            if (isBeingPushed) {
+                m_SnowballState = SnowballState::Pushed;
+                bool snowballOnPlatform = false;
+                float dummyVelocity = 0.0f;
+                glm::vec2 newPosition = GameWorld::map_collision_judgement(
+                    m_Width, m_Height, position, dummyVelocity, -800.0f, moveDistance, snowballOnPlatform);
+
+                float nickRight = nickPos.x + nick->GetCharacterWidth() / 2;
+                float nickLeft = nickPos.x - nick->GetCharacterWidth() / 2;
+                float snowballRight = newPosition.x + m_Width / 2;
+                float snowballLeft = newPosition.x - m_Width / 2;
+
+                bool movingRight = moveDistance > 0;
+                bool movingLeft = moveDistance < 0;
+                bool nickOnLeft = nickPos.x < position.x;
+                bool nickOnRight = nickPos.x > position.x;
+
+                if ((movingRight && nickOnLeft) || (movingLeft && nickOnRight)) {
+                    position = newPosition;
+                    if (movingRight && nickRight > snowballLeft) {
+                        nick->SetPosition({snowballLeft - nick->GetCharacterWidth() / 2, nickPos.y});
+                    } else if (movingLeft && nickLeft < snowballRight) {
+                        nick->SetPosition({snowballRight + nick->GetCharacterWidth() / 2, nickPos.y});
+                    }
+                } else {
+                    isBeingPushed = false;
+                }
             }
         }
     }
 
-    if (!isBeingPushed) {
-        position = CalculatePosition(width, height);
-    }
-
-    if (!isBeingPushed) {
+    if (!isBeingPushed && m_SnowballState == SnowballState::Static) {
+        m_SnowballState = SnowballState::Static;
+        position = CalculatePosition(m_Width, m_Height);
         m_MeltTimer += deltaTime;
     }
 
@@ -86,10 +99,18 @@ void Snowball::OnHit() {
     }
 }
 
-glm::vec2 Snowball::CalculatePosition(float width, float height) {
+void Snowball::OnKick(Direction direction) {
+    m_SnowballState = SnowballState::Kicked;
+    m_MeltTimer = 0.0f;
+    SetMeltStage(0);
+    std::shared_ptr<Util::Animation> animation = m_Animations["snowball_roll"];
+    animation->Play();
+    m_Direction = direction;
+}
+
+glm::vec2 Snowball::CalculatePosition(float width, float height, float moveDistance) {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     float gravity = -800.0f;
-    float moveDistance = 0.0f;
 
     m_IsOnPlatform ? m_JumpVelocity = 0.0f : m_JumpVelocity += gravity * deltaTime;
     return GameWorld::map_collision_judgement(width, height, m_Transform.translation, m_JumpVelocity, gravity, moveDistance, m_IsOnPlatform);

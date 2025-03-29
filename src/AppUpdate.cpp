@@ -15,12 +15,10 @@ void App::Update() {
 
     if (m_PRM && m_PRM->GetPhase() != m_CurrentLevel) {
         m_CurrentLevel = m_PRM->GetPhase();
-        LOG_DEBUG("Syncing m_CurrentLevel to Phase: {}", m_CurrentLevel);
     }
 
     if (m_CurrentState == State::GAMEOVER) {
         m_GameOverTimer += deltaTime;
-        LOG_DEBUG("GameOver timer: {}, duration: {}", m_GameOverTimer, m_GameOverDuration);
 
         static int lastFrame = -1;
         int currentFrame = static_cast<int>(m_GameOverTimer / m_GameOverDuration);
@@ -35,7 +33,6 @@ void App::Update() {
             } else {
                 path = RESOURCE_DIR "/Image/Background/Game_Over_1.png";
             }
-            LOG_INFO("Setting overlay to: {}, frame: {}", path, currentFrame);
             m_Overlay->SetImage(path);
             m_Overlay->m_Transform.translation = {0.0f, 0.0f};
             m_Overlay->m_Transform.scale = {1.0f, 1.0f};
@@ -78,17 +75,14 @@ void App::Update() {
         if (Util::Input::IsKeyDown(Util::Keycode::RETURN)) {
             m_PRM->NextPhase();
             InitializeLevel(0);
-            LOG_INFO("Entered Level 0 (Start Screen)");
         }
     } else if (m_CurrentLevel == 0) {
         if (Util::Input::IsKeyDown(Util::Keycode::RETURN)) {
             m_PRM->NextPhase();
             InitializeLevel(1);
-            LOG_INFO("Entered Level 1, Nick and RedDemon initialized");
         }
     } else if (m_CurrentLevel >= 1 && m_CurrentLevel <= 30) {
         auto& objects = GameWorld::GetObjects();
-        std::vector<std::shared_ptr<UpdatableDrawable>> toRemove;
 
         for (auto& obj : objects) {
             obj->Update();
@@ -116,12 +110,12 @@ void App::Update() {
                     }
                 }
                 if (bullet->IsMarkedForRemoval()) {
-                    toRemove.push_back(obj);
+                    AddRemovingObject(obj);
                 }
             } else if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
                 if (enemy->GetState() == EnemyState::Dead &&
                     std::dynamic_pointer_cast<Util::Animation>(enemy->GetDrawable())->GetState() == Util::Animation::State::ENDED) {
-                    toRemove.push_back(obj);
+                    AddRemovingObject(obj);
                 }
             }
         }
@@ -137,22 +131,16 @@ void App::Update() {
             }
         }
 
-        for (const auto& obj : toRemove) {
-            GameWorld::RemoveObject(obj);
-            m_Root.RemoveChild(obj);
-        }
-
         // 添加待處理的物件
         for (const auto& obj : m_PendingObjects) {
             GameWorld::AddObject(obj);
             m_Root.AddChild(std::static_pointer_cast<Util::GameObject>(obj));
-        }
+        }m_PendingObjects.clear();
+
         for (const auto& obj : m_RemovingObjects) {
             GameWorld::RemoveObject(obj);
             m_Root.RemoveChild(obj);
-        }
-        m_PendingObjects.clear();
-        m_RemovingObjects.clear();
+        }m_RemovingObjects.clear();
 
         if (GameWorld::GetObjects().empty() && m_Nick && m_Nick->GetState() != Nick::State::DIE) {
             if (m_CurrentLevel < 30) {
@@ -163,10 +151,10 @@ void App::Update() {
 
                 m_PRM->NextPhase();
                 InitializeLevel(m_PRM->GetPhase());
-                LOG_INFO("Entered Level {}", m_CurrentLevel);
+                m_Nick->SetPosition({0.0f, -285.0f});
+                m_Nick->SetState(Nick::State::SPAWN);
             } else {
                 m_CurrentState = State::END;
-                LOG_INFO("Game Completed!");
             }
         }
     }
@@ -175,7 +163,6 @@ void App::Update() {
         m_CurrentState = State::END;
     }
 
-    LOG_DEBUG("Calling m_Root.Update()");
     m_Root.Update();
 }
 
@@ -185,7 +172,6 @@ void App::SetState(State state) {
     m_CurrentState = state;
 
     if (state == State::GAMEOVER) {
-        LOG_DEBUG("Entering GAME_OVER state");
         m_Root.RemoveChild(m_Nick);
         for (auto& obj : GameWorld::GetObjects()) {
             m_Root.RemoveChild(obj);
@@ -193,7 +179,6 @@ void App::SetState(State state) {
         GameWorld::GetObjects().clear();
 
         std::string initialImage = RESOURCE_DIR "/Image/Background/black/black50.png";
-        LOG_INFO("Setting fresh overlay to: {}", initialImage);
         m_Overlay->SetImage(initialImage);
         m_Overlay->m_Transform.scale = {720.0f, 720.0f};
         m_Overlay->SetZIndex(10);
@@ -242,14 +227,12 @@ void App::InitializeLevel(int levelId) {
         }
         GameWorld::GetObjects().clear();
         SpawnEnemiesForLevel(levelId);
-        LOG_DEBUG("Initialized Level {} with {} enemies", levelId, GameWorld::GetObjects().size());
     } else if (levelId >= 2 && levelId <= 30) {
         for (auto obj : GameWorld::GetObjects()) {
             m_Root.RemoveChild(obj);
         }
         GameWorld::GetObjects().clear();
         SpawnEnemiesForLevel(levelId);
-        LOG_DEBUG("Initialized Level {} with {} enemies", levelId, GameWorld::GetObjects().size());
     }
 }
 
@@ -260,10 +243,8 @@ void App::SpawnEnemiesForLevel(int levelId) {
                 std::shared_ptr<Enemy> enemy;
                 if (enemyType == "RedDemon") {
                     enemy = std::make_shared<RedDemon>(pos);
-                    LOG_DEBUG("Spawning RedDemon at {}", glm::to_string(pos));
                 } else if (enemyType == "Boss1" || enemyType == "Boss2" || enemyType == "Boss3") {
                     enemy = std::make_shared<RedDemon>(pos);
-                    LOG_INFO("Spawning Boss {} at {}", enemyType, glm::to_string(pos));
                 }
                 if (enemy) {
                     GameWorld::AddObject(enemy);

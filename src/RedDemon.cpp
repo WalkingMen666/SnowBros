@@ -92,23 +92,30 @@ void RedDemon::Update() {
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
             m_Snowball->Update();
-            SetVisible(false);
-            SetPosition(m_Snowball->GetPosition());
-            if (m_Snowball->IsMelted()) {
-                m_State = EnemyState::Normal;
-                m_HitCount = 0;
-                m_MeltStage = 0;
-                SetState(State::STAND);
-                SetVisible(true);
-
-                float heightDiff = (GetCharacterHeight() - m_Snowball->GetHeight()) / 2;
-                newPosition = m_Snowball->GetPosition();
-                newPosition.y += heightDiff;
-                newPosition = GameWorld::map_collision_judgement(GetCharacterWidth(), GetCharacterHeight(), newPosition, m_JumpVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
-                SetPosition(newPosition);
-
-                App::GetInstance().AddRemovingObhect(m_Snowball);
+            if(m_Snowball->GetSnowballState() == Snowball::SnowballState::Killed) {
+                App::GetInstance().AddRemovingObject(m_Snowball);
                 m_Snowball = nullptr;
+                App::GetInstance().AddRemovingObject(shared_from_this());
+                LOG_INFO("Killed the Snowball and the RedDemon");
+            }else {
+                SetVisible(false);
+                SetPosition(m_Snowball->GetPosition());
+                if (m_Snowball->IsMelted()) {
+                    m_State = EnemyState::Normal;
+                    m_HitCount = 0;
+                    m_MeltStage = 0;
+                    SetState(State::STAND);
+                    SetVisible(true);
+
+                    float heightDiff = (GetCharacterHeight() - m_Snowball->GetHeight()) / 2;
+                    newPosition = m_Snowball->GetPosition();
+                    newPosition.y += heightDiff;
+                    newPosition = GameWorld::map_collision_judgement(GetCharacterWidth(), GetCharacterHeight(), newPosition, m_JumpVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
+                    SetPosition(newPosition);
+
+                    App::GetInstance().AddRemovingObject(m_Snowball);
+                    m_Snowball = nullptr;
+                }
             }
         }
     } else if (m_State == EnemyState::Dead) {
@@ -194,14 +201,5 @@ void RedDemon::LoadAnimations() {
     m_Animations["die"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "red_die_1.png", BASE_PATH + "red_die_2.png", BASE_PATH + "red_die_3.png",
                                  BASE_PATH + "red_die_4.png", BASE_PATH + "red_die_5.png"}, false, 500, false, 0);
-    m_Animations["snowball_roll"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "snowball_roll_1.png", BASE_PATH + "snowball_roll_2.png",
-                                 BASE_PATH + "snowball_roll_3.png", BASE_PATH + "snowball_roll_4.png"}, false, 200, true, 0);
-    m_Animations["snowball_melt_1"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "snowball_melt_1.png"}, false, 500, true, 0);
-    m_Animations["snowball_melt_2"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "snowball_melt_2.png"}, false, 500, true, 0);
-    m_Animations["snowball_melt_3"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "snowball_melt_3.png"}, false, 500, true, 0);
     m_Drawable = m_Animations["stand_right"];
 }

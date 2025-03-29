@@ -9,14 +9,21 @@
 #include "Util/Logger.hpp"
 #include <memory>
 #include <vector>
-
 #include "UpdatableDrawable.hpp"
 
 class Nick;
 class Enemy;
 
+enum class Direction { Left, Right };
+
 class App {
 public:
+    enum class State { START, UPDATE, END, GAMEOVER };
+
+    App();
+    App(const App&) = delete;
+    App& operator=(const App&) = delete;
+
     static App& GetInstance() {
         static App instance;
         return instance;
@@ -36,60 +43,53 @@ public:
         return instance->m_Root;
     }
 
-    enum class State {
-        START,
-        UPDATE,
-        END,
-        GAMEOVER
-    };
-
     void Start();
     void Update();
     void End();
-
     void SetState(State state);
-    State GetCurrentState() const { return m_CurrentState; }
-    int GetCurrentLevel() const { return m_CurrentLevel; }
-    std::shared_ptr<Nick> GetNick() const { return m_Nick; } // New method to access Nick
     void AddPendingObject(const std::shared_ptr<UpdatableDrawable>& obj) {
         m_PendingObjects.push_back(obj);
     }
-    void AddRemovingObhect(const std::shared_ptr<UpdatableDrawable>& obj) {
+    void AddRemovingObject(const std::shared_ptr<UpdatableDrawable>& obj) {
         m_RemovingObjects.push_back(obj);
     }
 
-private:
-    App();
-    App(const App&) = delete;
-    App& operator=(const App&) = delete;
+    [[nodiscard]] State GetCurrentState() const { return m_CurrentState; }
+    [[nodiscard]] int GetCurrentLevel() const { return m_CurrentLevel; }
+    [[nodiscard]] std::shared_ptr<Nick> GetNick() const { return m_Nick; }
 
+private:
+    // State and Level Management
     struct LevelConfig {
         int levelId;
         bool isBossLevel;
         std::vector<std::pair<std::string, glm::vec2>> enemies;
     };
-
-    void InitializeLevel(int levelId);
-    void UpdateFadeAnimation(float deltaTime);
-    void SpawnEnemiesForLevel(int levelId);
-
     State m_CurrentState = State::START;
-    int m_CurrentLevel = -1;
+    int   m_CurrentLevel = -1;
+    std::vector<LevelConfig> m_LevelConfigs;
 
+    // Core Components
     Util::Renderer m_Root;
     std::shared_ptr<Nick> m_Nick;
     std::shared_ptr<PhaseResourceManger> m_PRM;
     std::shared_ptr<BackgroundImage> m_Overlay;
-    std::vector<std::shared_ptr<UpdatableDrawable>> m_PendingObjects;  // 新增待添加物件的容器
-    std::vector<std::shared_ptr<UpdatableDrawable>> m_RemovingObjects;  // 新增待刪除物件的容器
 
+    // Object Management
+    std::vector<std::shared_ptr<UpdatableDrawable>> m_PendingObjects;
+    std::vector<std::shared_ptr<UpdatableDrawable>> m_RemovingObjects;
+
+    // Animation and Timing
     float m_FadeTimer = 0.0f;
     const float m_FadeDuration = 4.0f;
-    bool m_FadingIn = true;
+    bool  m_FadingIn = true;
     float m_GameOverTimer = 0.0f;
     const float m_GameOverDuration = 0.1f;
 
-    std::vector<LevelConfig> m_LevelConfigs;
+    // Private Methods
+    void InitializeLevel(int levelId);
+    void UpdateFadeAnimation(float deltaTime);
+    void SpawnEnemiesForLevel(int levelId);
 };
 
-#endif
+#endif // APP_HPP

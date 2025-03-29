@@ -23,29 +23,47 @@ public:
     void SetState(State state);
     void SetInvincible(bool invincible);
     void OnCollision(std::shared_ptr<Util::GameObject> other);
+    void SetDirection(bool facingRight);
+
     [[nodiscard]] State GetState() const { return m_State; }
     [[nodiscard]] bool IsAnimationFinished() const { return IfAnimationEnds(); }
-    void SetDirection(bool facingRight);
-    std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }
-    float GetCharacterWidth() const { return characterWidth; }
-    float GetWidth() const override { return characterWidth; }
-    float GetHeight() const override { return characterHeight; }
-    float GetSpeed() const { return m_Speed; }
+    [[nodiscard]] std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }
+    [[nodiscard]] float GetCharacterWidth() const { return characterWidth; }
+    [[nodiscard]] float GetWidth() const override { return characterWidth; }
+    [[nodiscard]] float GetHeight() const override { return characterHeight; }
+    [[nodiscard]] float GetSpeed() const { return m_Speed; }
 
 private:
-    void LoadAnimations();
-    void SwitchAnimation(State state, bool looping);
-
+    // State and Animation
     State m_State = State::SPAWN;
-    bool m_FacingRight = true;
-    bool m_IsOnPlatform = false;
-    bool m_IsInvincible = false;
+    bool  m_FacingRight = true;
+
+    // Physics
+    bool  m_IsOnPlatform = false;
+    float m_Speed = 150.0f;
+    float m_JumpVelocity = 0.0f;
+    float m_Gravity = -800.0f;
+    float m_DeathVelocity = 0.0f;
+
+    // Invincibility
+    bool  m_IsInvincible = false;
     float m_InvincibleTimer = 0.0f;
     float m_BlinkTimer = 0.0f;
-    int m_Lives = 3;
-    float m_DeathVelocity = 0.0f;
+
+    // Life and Death
+    int   m_Lives = 3;
     float m_DeathPauseTimer = 0.0f;
 
+    // Constants
+    static constexpr float characterWidth        = 35.0f;
+    static constexpr float characterHeight       = 55.0f;
+    static constexpr float m_JumpInitialVelocity = 450.0f;
+    static constexpr float m_InvincibleDuration  = 2.0f;
+    static constexpr float m_BlinkInterval       = 0.2f;
+    static constexpr float m_DeathInitialVelocity= 100.0f;
+    static constexpr float m_DeathPauseDuration  = 1.0f;
+
+    // Animations
     std::shared_ptr<Util::Animation> m_SpawnAnimation;
     std::shared_ptr<Util::Animation> m_IdleLeftAnimation;
     std::shared_ptr<Util::Animation> m_IdleRightAnimation;
@@ -61,16 +79,9 @@ private:
     std::shared_ptr<Util::Animation> m_KickLeftAnimation;
     std::shared_ptr<Util::Animation> m_KickRightAnimation;
 
-    static constexpr float m_Speed = 150.0f;
-    float m_JumpVelocity = 0.0f;
-    float m_Gravity = -800.0f;
-    static constexpr float m_JumpInitialVelocity = 450.0f;
-    static constexpr float characterWidth = 35.0f;
-    static constexpr float characterHeight = 55.0f;
-    static constexpr float m_InvincibleDuration = 2.0f;
-    static constexpr float m_BlinkInterval = 0.2f;
-    static constexpr float m_DeathInitialVelocity = 100.0f;
-    static constexpr float m_DeathPauseDuration = 1.0f;
+    // Private Methods
+    void LoadAnimations();
+    void SwitchAnimation(State state, bool looping);
 };
 
 #endif // NICK_HPP

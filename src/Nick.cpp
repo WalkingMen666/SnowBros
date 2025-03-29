@@ -47,6 +47,7 @@ void Nick::Update() {
                 if (const auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
                     if (enemy->GetState() == EnemyState::Snowball && glm::distance(position, enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
                         SetState(State::KICK);
+                        enemy->GetSnowball()->OnKick(m_FacingRight ? Direction::Right : Direction::Left);
                         nearSnowball = true;
                         break;
                     }
@@ -181,7 +182,7 @@ void Nick::SwitchAnimation(State state, bool looping) {
     switch (state) {
         case State::SPAWN: animation = m_SpawnAnimation; break;
         case State::IDLE: animation = m_FacingRight ? m_IdleRightAnimation : m_IdleLeftAnimation; break;
-        case State::WALK: animation = m_FacingRight ? m_WalkRightAnimation : m_IdleLeftAnimation; break;
+        case State::WALK: animation = m_FacingRight ? m_WalkRightAnimation : m_WalkLeftAnimation; break;
         case State::ATTACK: animation = m_FacingRight ? m_AttackRightAnimation : m_AttackLeftAnimation; break;
         case State::JUMP: animation = m_FacingRight ? m_JumpRightAnimation : m_JumpLeftAnimation; break;
         case State::DIE: animation = m_DieAnimation; break;
@@ -225,6 +226,6 @@ void Nick::LoadAnimations() {
     m_DieAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_die_1.png", basePath + "nick_die_2.png", basePath + "nick_die_3.png", basePath + "nick_die_4.png"}, false, 400, false, 0);
     m_PushLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_left_1.png", basePath + "nick_push_left_2.png", basePath + "nick_push_left_3.png"}, false, 200, true, 0);
     m_PushRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_right_1.png", basePath + "nick_push_right_2.png", basePath + "nick_push_right_3.png"}, false, 200, true, 0);
-    m_KickLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_kick_left.png"}, false, 200, false, 0);
-    m_KickRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_kick_right.png"}, false, 200, false, 0);
+    m_KickLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_kick_left.png"}, false, 400, false, 0);
+    m_KickRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_kick_right.png"}, false, 400, false, 0);
 }
