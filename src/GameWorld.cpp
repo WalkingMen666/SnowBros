@@ -25,6 +25,7 @@ glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float charact
 
     auto prm = App::GetPRM();
     if (!prm) {
+        LOG_ERROR("GameWorld::map_collision_judgement: PhaseResourceManager is not initialized!");
         return position;
     }
     const Map& map = prm->GetMap();
@@ -124,4 +125,29 @@ glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float charact
         }
     }
     return position;
+}
+
+bool GameWorld::CollisionToWall(const glm::vec2& position, float width, float height, bool isOnPlatform) {
+    auto prm = App::GetPRM();
+    if (!prm) {
+        LOG_ERROR("GameWorld::CollisionToWall: PhaseResourceManager is not initialized");
+        return false;
+    }
+    const Map& map = prm->GetMap();
+
+    int leftTileX = std::max(0, std::min(static_cast<int>((position.x - width / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int rightTileX = std::max(0, std::min(static_cast<int>((position.x + width / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int topTileY = std::max(0, std::min(static_cast<int>((360.0f - position.y - height / 2) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    int bottomTileY = std::max(0, std::min(static_cast<int>((360.0f - (position.y - height / 2) + 5.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    int graceVal = 1;
+
+    for(int tileY = topTileY; tileY <= bottomTileY; ++tileY) {
+        for(int tileX = leftTileX - graceVal; tileX <= leftTileX + graceVal; ++tileX) {
+            if(isOnPlatform && map.GetTile(tileX, tileY) == 2) return true;
+        }
+        for(int tileX = rightTileX - graceVal; tileX <= rightTileX + graceVal; ++tileX) {
+            if(isOnPlatform && map.GetTile(tileX, tileY) == 2) return true;
+        }
+    }
+    return false;
 }

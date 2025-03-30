@@ -11,13 +11,15 @@ class Enemy;
 
 class Snowball : public UpdatableDrawable {
 public:
-    enum class SnowballState { Static, Pushed, Kicked, Killed};
+    enum class SnowballState { Static, Pushed, Kicked, Killed };
 
-    Snowball(const glm::vec2& initialPosition);
+    // 更新構造函數，接受來源敵人
+    Snowball(const glm::vec2& initialPosition, std::shared_ptr<Enemy> sourceEnemy = nullptr);
     void Update() override;
     void OnHit();
     void OnKick(Direction direction);
     void SetMeltStage(int stage);
+    void CheckCollisionWithEnemies();
 
     [[nodiscard]] bool IsMelted() const { return m_MeltStage == 3 && m_MeltTimer >= m_MeltDuration; }
     [[nodiscard]] int GetMeltStage() const { return m_MeltStage; }
@@ -46,6 +48,9 @@ private:
 
     // Animations
     std::map<std::string, std::shared_ptr<Util::Animation>> m_Animations;
+
+    // 來源敵人
+    std::weak_ptr<Enemy> m_SourceEnemy; // 使用 weak_ptr 避免循環引用
 
     // Private Methods
     void LoadAnimations();

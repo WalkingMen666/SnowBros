@@ -22,6 +22,7 @@ public:
         float m_Gravity,
         float moveDistance,
         bool &isOnPlatform);
+    static bool CollisionToWall(const glm::vec2& position, float width, float height, bool isOnPlatform);
 
 private:
     static std::vector<std::shared_ptr<UpdatableDrawable>> m_Objects;

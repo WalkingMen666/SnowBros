@@ -2,7 +2,6 @@
 #include "App.hpp"
 #include "Bullet.hpp"
 #include "Snowball.hpp"
-#include "PhaseResourceManger.hpp"
 
 Nick::Nick()
     : Character(RESOURCE_DIR "/Image/Character/Tom&Nick/spawn1.png")

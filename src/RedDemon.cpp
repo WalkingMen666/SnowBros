@@ -31,7 +31,7 @@ void RedDemon::Update() {
         float moveSpeed = (m_CurrentState == State::STAND) ? 0.0f : m_speed * deltaTime;
         float moveDistance = (m_Direction == Direction::Right) ? moveSpeed : -moveSpeed;
 
-        newPosition = GameWorld::map_collision_judgement(46.0f, 46.0f, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
+        newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
 
         if (m_IsActing || m_IsChangingDirection) {
             if (m_ActionTimer >= ACTION_DELAY) {
@@ -68,14 +68,19 @@ void RedDemon::Update() {
                 }
             }
 
-            if (newPosition.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - 46.0f) / 2) {
+            if (newPosition.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - m_Width) / 2) {
                 m_IsChangingDirection = true;
                 m_TargetDirection = Direction::Left;
                 SetState(State::STAND);
                 m_ActionTimer = 0.0f;
-            } else if (newPosition.x <= (-Map::MAP_WIDTH * Map::TILE_SIZE + 46.0f) / 2) {
+            } else if (newPosition.x <= (-Map::MAP_WIDTH * Map::TILE_SIZE + m_Width) / 2) {
                 m_IsChangingDirection = true;
                 m_TargetDirection = Direction::Right;
+                SetState(State::STAND);
+                m_ActionTimer = 0.0f;
+            } else if (GameWorld::CollisionToWall(newPosition, m_Width, m_Height - 5, m_IsOnPlatform)) {
+                m_IsChangingDirection = true;
+                m_TargetDirection = (m_Direction == Direction::Right) ? Direction::Left : Direction::Right;
                 SetState(State::STAND);
                 m_ActionTimer = 0.0f;
             } else if (m_CurrentState == State::WALK) {
@@ -92,12 +97,11 @@ void RedDemon::Update() {
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
             m_Snowball->Update();
-            if(m_Snowball->GetSnowballState() == Snowball::SnowballState::Killed) {
+            if (m_Snowball->GetSnowballState() == Snowball::SnowballState::Killed) {
                 App::GetInstance().AddRemovingObject(m_Snowball);
                 m_Snowball = nullptr;
                 App::GetInstance().AddRemovingObject(shared_from_this());
-                LOG_INFO("Killed the Snowball and the RedDemon");
-            }else {
+            } else {
                 SetVisible(false);
                 SetPosition(m_Snowball->GetPosition());
                 if (m_Snowball->IsMelted()) {
@@ -119,8 +123,28 @@ void RedDemon::Update() {
             }
         }
     } else if (m_State == EnemyState::Dead) {
-        if (std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->GetState() == Util::Animation::State::ENDED) {
-            GameWorld::RemoveObject(std::shared_ptr<RedDemon>(this));
+        m_DeathTimer += deltaTime;
+
+        if (!m_HasLanded) {
+            // 飛行階段
+            m_DeathVelocity += m_Gravity * deltaTime;
+            newPosition.y += m_DeathVelocity * deltaTime;
+
+            // 檢查是否落地
+            if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= m_GroundLevel)) {
+                // if(newPosition.y < m_GroundLevel) newPosition.y = m_GroundLevel;
+                m_DeathVelocity = 0.0f;
+                m_HasLanded = true;
+                m_DeathTimer = 0.0f; // 重置計時器用於落地等待
+                SetAnimation("die_landing"); // 切換到落地動畫
+            }
+            SetPosition(newPosition);
+        } else {
+            // 落地後等待 0.4 秒
+            if (m_DeathTimer >= m_LandingDuration) {
+                // GameWorld::RemoveObject(std::shared_ptr<RedDemon>(shared_from_this()));
+                App::GetInstance().AddRemovingObject(shared_from_this());
+            }
         }
     }
 
@@ -135,7 +159,7 @@ void RedDemon::OnHit() {
     if (m_State == EnemyState::Normal) {
         if (++m_HitCount >= m_MaxHits) {
             m_State = EnemyState::Snowball;
-            m_Snowball = std::make_shared<Snowball>(GetPosition());
+            m_Snowball = std::make_shared<Snowball>(GetPosition(), shared_from_this());
             App::GetInstance().AddPendingObject(m_Snowball);
             m_JumpVelocity = 0.0f;
             m_HitCount = 0;
@@ -146,8 +170,17 @@ void RedDemon::OnHit() {
     }
 }
 
+void RedDemon::Die() {
+    SetState(State::DIE);
+    m_State = EnemyState::Dead;
+    m_DeathTimer = 0.0f;
+    m_HasLanded = false;
+    m_DeathVelocity = 450.0f;
+    SetAnimation("die_flying"); // 開始飛行動畫
+}
+
 std::pair<float, float> RedDemon::GetSizeForMeltStage() const {
-    return m_State == EnemyState::Snowball ? std::make_pair(42.0f, 44.0f) : std::make_pair(46.0f, 46.0f);
+    return m_State == EnemyState::Snowball ? std::make_pair(42.0f, 44.0f) : std::make_pair(m_Width, m_Height);
 }
 
 void RedDemon::SetState(State state) {
@@ -168,7 +201,7 @@ void RedDemon::SetState(State state) {
             SetAnimation((m_Direction == Direction::Right) ? "down_right" : "down_left");
             break;
         case State::DIE:
-            SetAnimation("die");
+            // 這裡不直接設置動畫，因為 Die() 會處理
             break;
     }
 }
@@ -198,8 +231,12 @@ void RedDemon::LoadAnimations() {
         std::vector<std::string>{BASE_PATH + "red_down_left.png"}, false, 300, false, 0);
     m_Animations["down_right"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "red_down_right.png"}, false, 300, false, 0);
-    m_Animations["die"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "red_die_1.png", BASE_PATH + "red_die_2.png", BASE_PATH + "red_die_3.png",
-                                 BASE_PATH + "red_die_4.png", BASE_PATH + "red_die_5.png"}, false, 500, false, 0);
+    // 飛行階段的死亡動畫（1~4 幀，循環）
+    m_Animations["die_flying"] = std::make_shared<Util::Animation>(
+        std::vector<std::string>{BASE_PATH + "red_die_1.png", BASE_PATH + "red_die_2.png",
+                                 BASE_PATH + "red_die_3.png", BASE_PATH + "red_die_4.png"}, false, 200, true, 0);
+    // 落地階段的死亡動畫（第 5 幀）
+    m_Animations["die_landing"] = std::make_shared<Util::Animation>(
+        std::vector<std::string>{BASE_PATH + "red_die_5.png"}, false, 400, false, 0);
     m_Drawable = m_Animations["stand_right"];
 }

@@ -24,6 +24,8 @@ public:
     virtual void Update() = 0;
     virtual void OnHit();
     virtual void OnCollision(std::shared_ptr<Util::GameObject> other) = 0;
+    virtual bool IsBoss() const { return false; }
+    virtual void Die() { m_State = EnemyState::Dead; }
     void SetAnimation(const std::string& key);
     void SetMeltStage(int stage);
 

@@ -6,8 +6,8 @@ App::App() {
     m_LevelConfigs = {
         { -1, false, {} }, // 初始畫面
         { 0, false, {} },  // 開始畫面
-        { 1, false, { {"RedDemon", {260.0f, 180.0f}} } }, // 第1關: 1隻 RedDemon
-        { 2, false, { {"RedDemon", {200.0f, 100.0f}}, {"RedDemon", {-200.0f, 100.0f}} } }, // 第2關: 2隻 RedDemon
+        { 1, false, { {"RedDemon", {-260.0f, 160.0f}}, {"RedDemon", {260.0f, 160.0f}} } },
+        { 2, false, { {"RedDemon", {150.0f, 100.0f}}, {"RedDemon", {-150.0f, 100.0f}}, {"RedDemon", {-110.0f, -185.0f}}, {"RedDemon", {65.0f, -80.0f}}}},
         { 3, false, {} }, // 第3關: 無敵人
         // { 28, true, { {"Boss1", {300.0f, 200.0f}} } }, // Boss 關示例
         // { 29, true, { {"Boss2", {350.0f, 250.0f}} } },

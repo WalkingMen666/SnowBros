@@ -2,7 +2,8 @@
 #include "GameWorld.hpp"
 #include "Nick.hpp"
 
-Snowball::Snowball(const glm::vec2& initialPosition) {
+Snowball::Snowball(const glm::vec2& initialPosition, std::shared_ptr<Enemy> sourceEnemy)
+    : m_SourceEnemy(sourceEnemy) {
     LoadAnimations();
     m_Drawable = m_Animations["snowball_melt_3"];
     m_Transform.translation = initialPosition;
@@ -27,13 +28,18 @@ void Snowball::Update() {
             float moveDistance = (m_Direction == Direction::Right) ? m_RollingSpeed : -m_RollingSpeed;
             position = CalculatePosition(m_Width, m_Height, moveDistance * deltaTime);
 
-            if (position.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - 46.0f) / 2 || position.x <= (-Map::MAP_WIDTH * Map::TILE_SIZE + 46.0f) / 2) {
+            if (position.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - 46.0f) / 2
+                || position.x <= (-Map::MAP_WIDTH * Map::TILE_SIZE + 46.0f) / 2
+                || GameWorld::CollisionToWall(position, m_Width, m_Height, m_IsOnPlatform)) {
                 m_Direction = (m_Direction == Direction::Right) ? Direction::Left : Direction::Right;
                 ++IsOnEdge;
             }
-            LOG_INFO("m_RollingTimer: {}", m_RollingTimer);
             if(m_RollingTimer >= m_RollingDuration || (position.y <= -285.0f && IsOnEdge > 1)) {
                 m_SnowballState = SnowballState::Killed;
+            }
+
+            if (m_SnowballState == SnowballState::Kicked) {
+                CheckCollisionWithEnemies();
             }
         }else {
             if (distance < collisionThreshold) {
@@ -106,6 +112,35 @@ void Snowball::OnKick(Direction direction) {
     std::shared_ptr<Util::Animation> animation = m_Animations["snowball_roll"];
     animation->Play();
     m_Direction = direction;
+}
+
+void Snowball::CheckCollisionWithEnemies() {
+    auto& objects = GameWorld::GetObjects();
+    glm::vec2 snowballPos = GetPosition();
+    float snowballLeft = snowballPos.x - m_Width / 2;
+    float snowballRight = snowballPos.x + m_Width / 2;
+    float snowballTop = snowballPos.y + m_Height / 2;
+    float snowballBottom = snowballPos.y - m_Height / 2;
+
+    for (auto& obj : objects) {
+        if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+            if (auto source = m_SourceEnemy.lock()) {
+                if (source == enemy) continue; // 跳過來源敵人
+            }
+            if (enemy->IsBoss()) continue;    // 排除 Boss
+
+            glm::vec2 enemyPos = enemy->GetPosition();
+            float enemyLeft = enemyPos.x - enemy->GetWidth() / 2;
+            float enemyRight = enemyPos.x + enemy->GetWidth() / 2;
+            float enemyTop = enemyPos.y + enemy->GetHeight() / 2;
+            float enemyBottom = enemyPos.y - enemy->GetHeight() / 2;
+
+            if (snowballRight > enemyLeft && snowballLeft < enemyRight &&
+                snowballTop > enemyBottom && snowballBottom < enemyTop) {
+                enemy->Die(); // 調用死亡處理
+            }
+        }
+    }
 }
 
 glm::vec2 Snowball::CalculatePosition(float width, float height, float moveDistance) {

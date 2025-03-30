@@ -15,6 +15,7 @@ public:
     void Update() override;
     void OnHit() override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
+    void Die() override;
 
     [[nodiscard]] float GetCharacterWidth() const override { return GetSizeForMeltStage().first; }
     [[nodiscard]] float GetCharacterHeight() const override { return GetSizeForMeltStage().second; }
@@ -43,8 +44,18 @@ private:
     bool  m_IsOnPlatform = false;
     State m_CurrentState = State::STAND;
 
+    // Death Physics
+    float m_DeathVelocity = 0.0f;       // 死亡時的初速度
+    float m_DeathTimer = 0.0f;          // 死亡計時器
+    bool  m_HasLanded = false;          // 是否已落地
+    const float m_DeathDuration = 2.0f; // 死亡動畫持續時間
+    const float m_DeathHeight = 100.0f; // 飛起高度
+    const float m_LandingDuration = 0.4f; // 落地後等待時間
+
     // Constants
     const float ACTION_DELAY = 0.5f;
+    const float m_Width = 46.0f;
+    const float m_Height = 46.0f;
 
     // Private Methods
     void LoadAnimations();
