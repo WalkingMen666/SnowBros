@@ -124,30 +124,23 @@ void RedDemon::Update() {
         }
     } else if (m_State == EnemyState::Dead) {
         m_DeathTimer += deltaTime;
-
         if (!m_HasLanded) {
-            // 飛行階段
-            m_DeathVelocity += m_Gravity * deltaTime;
-            newPosition.y += m_DeathVelocity * deltaTime;
-
-            // 檢查是否落地
+            newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
             if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= m_GroundLevel)) {
-                // if(newPosition.y < m_GroundLevel) newPosition.y = m_GroundLevel;
+                if(newPosition.y < m_GroundLevel) newPosition.y = m_GroundLevel;
                 m_DeathVelocity = 0.0f;
                 m_HasLanded = true;
                 m_DeathTimer = 0.0f; // 重置計時器用於落地等待
                 SetAnimation("die_landing"); // 切換到落地動畫
             }
-            SetPosition(newPosition);
         } else {
-            // 落地後等待 0.4 秒
+            newPosition = GameWorld::map_collision_judgement(46, 35, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
             if (m_DeathTimer >= m_LandingDuration) {
-                // GameWorld::RemoveObject(std::shared_ptr<RedDemon>(shared_from_this()));
                 App::GetInstance().AddRemovingObject(shared_from_this());
             }
         }
+        SetPosition(newPosition);
     }
-
     if (auto nick = App::GetInstance().GetNick()) {
         if (glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetCharacterWidth()) / 2) {
             OnCollision(nick);
@@ -171,12 +164,18 @@ void RedDemon::OnHit() {
 }
 
 void RedDemon::Die() {
-    SetState(State::DIE);
-    m_State = EnemyState::Dead;
-    m_DeathTimer = 0.0f;
-    m_HasLanded = false;
-    m_DeathVelocity = 450.0f;
-    SetAnimation("die_flying"); // 開始飛行動畫
+    if(m_State == EnemyState::Snowball) {
+        m_Snowball->SetVisible(false);
+        App::GetInstance().AddRemovingObject(m_Snowball);
+        App::GetInstance().AddRemovingObject(shared_from_this());
+    }else {
+        SetState(State::DIE);
+        m_State = EnemyState::Dead;
+        m_DeathTimer = 0.0f;
+        m_HasLanded = false;
+        m_DeathVelocity = 450.0f;
+        SetAnimation("die_flying"); // 開始飛行動畫
+    }
 }
 
 std::pair<float, float> RedDemon::GetSizeForMeltStage() const {
@@ -231,11 +230,9 @@ void RedDemon::LoadAnimations() {
         std::vector<std::string>{BASE_PATH + "red_down_left.png"}, false, 300, false, 0);
     m_Animations["down_right"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "red_down_right.png"}, false, 300, false, 0);
-    // 飛行階段的死亡動畫（1~4 幀，循環）
     m_Animations["die_flying"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "red_die_1.png", BASE_PATH + "red_die_2.png",
-                                 BASE_PATH + "red_die_3.png", BASE_PATH + "red_die_4.png"}, false, 200, true, 0);
-    // 落地階段的死亡動畫（第 5 幀）
+                                 BASE_PATH + "red_die_3.png", BASE_PATH + "red_die_4.png"}, false, 250, true, 0);
     m_Animations["die_landing"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "red_die_5.png"}, false, 400, false, 0);
     m_Drawable = m_Animations["stand_right"];

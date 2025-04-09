@@ -48,7 +48,7 @@ private:
     float m_DeathVelocity = 0.0f;       // 死亡時的初速度
     float m_DeathTimer = 0.0f;          // 死亡計時器
     bool  m_HasLanded = false;          // 是否已落地
-    const float m_DeathDuration = 2.0f; // 死亡動畫持續時間
+    const float m_DeathDuration = 1.0f; // 死亡動畫持續時間
     const float m_DeathHeight = 100.0f; // 飛起高度
     const float m_LandingDuration = 0.4f; // 落地後等待時間
 
