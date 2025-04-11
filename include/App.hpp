@@ -85,6 +85,8 @@ private:
     bool  m_FadingIn = true;
     float m_GameOverTimer = 0.0f;
     const float m_GameOverDuration = 0.1f;
+    float m_LevelingTimer = 0.0f;
+    const float m_LevelingDuration = 1.5f;
 
     // Private Methods
     void InitializeLevel(int levelId);

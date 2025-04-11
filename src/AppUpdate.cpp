@@ -149,10 +149,18 @@ void App::Update() {
                 }
                 GameWorld::GetObjects().clear();
 
-                m_PRM->NextPhase();
-                InitializeLevel(m_PRM->GetPhase());
-                m_Nick->SetPosition({0.0f, -285.0f});
-                m_Nick->SetState(Nick::State::SPAWN);
+                m_LevelingTimer += deltaTime;
+                if (m_LevelingTimer < m_LevelingDuration) {
+                    m_Overlay->SetImage(RESOURCE_DIR "/Image/Floor/FLOOR" + std::to_string(m_CurrentLevel + 1) + ".png");
+                    m_Overlay->SetVisible(true);
+                }else {
+                    m_LevelingTimer = 0.0f;
+                    m_Overlay->SetVisible(false);
+                    m_PRM->NextPhase();
+                    InitializeLevel(m_PRM->GetPhase());
+                    m_Nick->SetPosition({0.0f, -285.0f});
+                    m_Nick->SetState(Nick::State::SPAWN);
+                }
             } else {
                 m_CurrentState = State::END;
             }

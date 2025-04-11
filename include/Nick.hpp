@@ -58,7 +58,7 @@ private:
     static constexpr float characterWidth        = 35.0f;
     static constexpr float characterHeight       = 55.0f;
     static constexpr float m_JumpInitialVelocity = 450.0f;
-    static constexpr float m_InvincibleDuration  = 2.0f;
+    static constexpr float m_InvincibleDuration  = 4.0f;
     static constexpr float m_BlinkInterval       = 0.2f;
     static constexpr float m_DeathInitialVelocity= 100.0f;
     static constexpr float m_DeathPauseDuration  = 1.0f;

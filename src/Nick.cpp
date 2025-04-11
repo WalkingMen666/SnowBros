@@ -8,9 +8,9 @@ Nick::Nick()
     , AnimatedCharacter({})
 {
     LoadAnimations();
-    m_Drawable = m_SpawnAnimation;
     SetPosition({0.0f, -285.0f});
-    m_SpawnAnimation->Play();
+    SwitchAnimation(State::SPAWN, false);
+    SetInvincible(true);
 }
 
 void Nick::Update() {
@@ -24,7 +24,7 @@ void Nick::Update() {
         if (m_IsInvincible) {
             m_InvincibleTimer -= deltaTime;
             m_BlinkTimer += deltaTime;
-            if (m_BlinkTimer >= m_BlinkInterval) {
+            if (m_BlinkTimer >= m_BlinkInterval && m_State != State::SPAWN) {
                 SetVisible(!GetVisibility());
                 m_BlinkTimer = 0.0f;
             }
@@ -88,7 +88,7 @@ void Nick::Update() {
         case State::SPAWN:
             if (IsAnimationFinished()) {
                 SetState(State::IDLE);
-                SetInvincible(true);
+                // SetInvincible(true);
             }
             break;
         case State::IDLE:
@@ -147,6 +147,8 @@ void Nick::SetState(State state) {
     } else if (state == State::DIE) {
         m_DeathVelocity = m_DeathInitialVelocity;
         m_Gravity = -50.0f;
+    }else if (state == State::SPAWN) {
+        SetInvincible(true);
     }
     SwitchAnimation(state, state == State::IDLE || state == State::WALK || state == State::PUSH);
 }
