@@ -24,7 +24,7 @@ public:
 
 protected:
     // Movement and Physics
-    float m_speed = 180.0f;
+    float m_speed = 120.0f;
     float m_JumpVelocity = 0.0f;
 
     // Resources
@@ -43,14 +43,16 @@ private:
     Direction m_TargetDirection;
     bool  m_IsOnPlatform = false;
     State m_CurrentState = State::STAND;
+    float m_AttackTimer = 0.0f;
+    const float m_AttackDuration = 1.0f;
 
     // Death Physics
-    float m_DeathVelocity = 0.0f;       // 死亡時的初速度
-    float m_DeathTimer = 0.0f;          // 死亡計時器
-    bool  m_HasLanded = false;          // 是否已落地
-    const float m_DeathDuration = 1.0f; // 死亡動畫持續時間
-    const float m_DeathHeight = 100.0f; // 飛起高度
-    const float m_LandingDuration = 0.4f; // 落地後等待時間
+    float m_DeathVelocity = 0.0f;
+    float m_DeathTimer = 0.0f;
+    bool  m_HasLanded = false;
+    const float m_DeathDuration = 1.0f;
+    const float m_DeathHeight = 100.0f;
+    const float m_LandingDuration = 0.4f;
 
     // Constants
     const float ACTION_DELAY = 0.5f;

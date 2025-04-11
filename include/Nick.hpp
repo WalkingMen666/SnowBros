@@ -29,6 +29,7 @@ public:
     [[nodiscard]] bool IsAnimationFinished() const { return IfAnimationEnds(); }
     [[nodiscard]] std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }
     [[nodiscard]] float GetCharacterWidth() const { return characterWidth; }
+    [[nodiscard]] float GetCharacterHeight() const { return characterHeight; }
     [[nodiscard]] float GetWidth() const override { return characterWidth; }
     [[nodiscard]] float GetHeight() const override { return characterHeight; }
     [[nodiscard]] float GetSpeed() const { return m_Speed; }

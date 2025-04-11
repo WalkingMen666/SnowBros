@@ -6,9 +6,9 @@
 #include "GameWorld.hpp"
 #include "RedDemon.hpp"
 #include "Frog.hpp"
+#include "FrogBullet.hpp"
 #include "Enemy.hpp"
 #include "Bullet.hpp"
-#include "Frog.hpp"
 
 void App::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
@@ -106,12 +106,33 @@ void App::Update() {
                             bulletTop > otherBottom && bulletBottom < otherTop) {
                             bullet->OnCollision(other);
                             if (auto snowball = std::dynamic_pointer_cast<Snowball>(other)) {
-                                snowball->OnHit();  // 雪球被擊中
+                                snowball->OnHit();
                             }
                         }
                     }
                 }
                 if (bullet->IsMarkedForRemoval()) {
+                    AddRemovingObject(obj);
+                }
+            } else if (auto frogBullet = std::dynamic_pointer_cast<FrogBullet>(obj)) {
+                if (m_Nick) {
+                    glm::vec2 bulletPos = frogBullet->GetPosition();
+                    glm::vec2 nickPos = m_Nick->GetPosition();
+                    float bulletLeft = bulletPos.x - frogBullet->GetWidth() / 2;
+                    float bulletRight = bulletPos.x + frogBullet->GetWidth() / 2;
+                    float bulletTop = bulletPos.y + frogBullet->GetHeight() / 2;
+                    float bulletBottom = bulletPos.y - frogBullet->GetHeight() / 2;
+                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
+                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
+                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
+                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
+
+                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
+                        bulletTop > nickBottom && bulletBottom < nickTop) {
+                        frogBullet->OnCollision(m_Nick);
+                    }
+                }
+                if (frogBullet->IsMarkedForRemoval()) {
                     AddRemovingObject(obj);
                 }
             } else if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {

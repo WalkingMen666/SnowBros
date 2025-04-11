@@ -28,10 +28,9 @@ void Enemy::OnHit() {
 
 void Enemy::SetAnimation(const std::string& key) {
     auto it = m_Animations.find(key);
-        if (it != m_Animations.end()) {
-            m_Drawable = it->second;
-            std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->Play();
-        } else {
+    if (it != m_Animations.end()) {
+        m_Drawable = it->second;
+        std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->Play();
     }
 }
 

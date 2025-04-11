@@ -57,6 +57,8 @@ add_executable(${PROJECT_NAME}
         include/UpdatableDrawable.hpp
         include/Frog.hpp
         src/Frog.cpp
+        include/FrogBullet.hpp
+        src/FrogBullet.cpp
 )
 
 if(MSVC)
