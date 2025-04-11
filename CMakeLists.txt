@@ -55,6 +55,8 @@ add_executable(${PROJECT_NAME}
         include/GameWorld.hpp
         src/GameWorld.cpp
         include/UpdatableDrawable.hpp
+        include/Frog.hpp
+        src/Frog.cpp
 )
 
 if(MSVC)
