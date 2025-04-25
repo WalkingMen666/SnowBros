@@ -8,7 +8,7 @@ Nick::Nick()
     , AnimatedCharacter({})
 {
     LoadAnimations();
-    SetPosition({0.0f, -285.0f});
+    SetPosition({0.0f, -325.0f});
     SwitchAnimation(State::SPAWN, false);
     SetInvincible(true);
 }
@@ -119,7 +119,7 @@ void Nick::Update() {
                     m_DeathPauseTimer = 0.0f;
                     if (m_Lives > 0) {
                         SetState(State::SPAWN);
-                        position = {0.0f, -285.0f};
+                        position = {0.0f, -325.0f};
                     } else {
                         App::GetInstance().SetState(App::State::GAMEOVER);
                     }

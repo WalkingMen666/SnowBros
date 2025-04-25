@@ -6,7 +6,7 @@ App::App() {
     m_LevelConfigs = {
         { -1, false, {} }, // 初始畫面
         { 0, false, {} },  // 開始畫面
-        { 1, false, { {"Frog", {0.0f, -40.0f}} } },
+        { 1, false, { {"Frog", {0.0f, -40.0f}}, {"RedDemon", {-185.0f, 245.0f}}, {"RedDemon", {185.0f, 245.0f}} } },
         { 2, false, { {"RedDemon", {150.0f, 100.0f}}, {"RedDemon", {-150.0f, 100.0f}}, {"RedDemon", {-110.0f, -185.0f}}, {"RedDemon", {65.0f, -80.0f}}}},
         { 3, false, {} }, // 第3關: 無敵人
         // { 28, true, { {"Boss1", {300.0f, 200.0f}} } }, // Boss 關示例

@@ -20,7 +20,7 @@ void GameWorld::RemoveObject(std::shared_ptr<UpdatableDrawable> obj) {
 
 glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float characterHeight, glm::vec2 position,
                                              float& m_JumpVelocity, float m_Gravity, float moveDistance, bool& isOnPlatform) {
-    static const float GROUND_LEVEL = -285.0f;
+    static const float GROUND_LEVEL = -325.0f;
     const float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
 
     auto prm = App::GetPRM();

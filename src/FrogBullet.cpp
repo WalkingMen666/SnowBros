@@ -61,7 +61,7 @@ void FrogBullet::Update() {
         }
     } else {
         m_Transform.translation += m_Velocity * deltaTime;
-        if (m_LifeTime > MAX_LIFE || GetPosition().y < -300 || GetPosition().y > 300) {
+        if (m_LifeTime > MAX_LIFE || GetPosition().y < -380 || GetPosition().y > 330) {
             m_MarkedForRemoval = true;
         }
     }

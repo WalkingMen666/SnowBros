@@ -34,7 +34,7 @@ void Snowball::Update() {
                 m_Direction = (m_Direction == Direction::Right) ? Direction::Left : Direction::Right;
                 ++IsOnEdge;
             }
-            if(m_RollingTimer >= m_RollingDuration || (position.y <= -285.0f && IsOnEdge > 1)) {
+            if(m_RollingTimer >= m_RollingDuration || (position.y <= -325.0f && IsOnEdge > 1)) {
                 m_SnowballState = SnowballState::Killed;
             }
 

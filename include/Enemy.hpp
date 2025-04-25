@@ -51,7 +51,7 @@ protected:
     float     m_MeltTimer = 0.0f;
 
     // Constants
-    static constexpr float m_GroundLevel = -285.0f;
+    static constexpr float m_GroundLevel = -325.0f;
     static constexpr float m_MeltDuration = 4.0f;
 
     // Animations

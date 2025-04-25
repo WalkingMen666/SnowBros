@@ -18,7 +18,7 @@ void Bullet::Update() {
     if (m_LifeTime > 0.5f) m_Velocity.y -= 150.0f * deltaTime;
     m_Transform.translation += m_Velocity * deltaTime;
 
-    if (m_LifeTime > MAX_LIFE || GetPosition().y < -300) m_MarkedForRemoval = true;
+    if (m_LifeTime > MAX_LIFE || GetPosition().y < -380) m_MarkedForRemoval = true;
 }
 
 void Bullet::OnCollision(std::shared_ptr<Util::GameObject> other) {

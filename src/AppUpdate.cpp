@@ -52,7 +52,7 @@ void App::Update() {
         if (Util::Input::IsKeyDown(Util::Keycode::N) && !hasSwitchedPhase) {
             m_PRM->NextPhase();
             m_CurrentLevel = m_PRM->GetPhase();
-            newPosition = {0.0f, -285.0f};
+            newPosition = {0.0f, -325.0f};
             hasSwitchedPhase = true;
             LOG_INFO("Entering Phase/Level: {}", m_CurrentLevel);
 
@@ -181,7 +181,7 @@ void App::Update() {
                     m_Overlay->SetVisible(false);
                     m_PRM->NextPhase();
                     InitializeLevel(m_PRM->GetPhase());
-                    m_Nick->SetPosition({0.0f, -285.0f});
+                    m_Nick->SetPosition({0.0f, -325.0f});
                     m_Nick->SetState(Nick::State::SPAWN);
                 }
             } else {
@@ -211,7 +211,7 @@ void App::SetState(State state) {
 
         std::string initialImage = RESOURCE_DIR "/Image/Background/black/black50.png";
         m_Overlay->SetImage(initialImage);
-        m_Overlay->m_Transform.scale = {720.0f, 720.0f};
+        // m_Overlay->m_Transform.scale = {720.0f, 720.0f};
         m_Overlay->SetZIndex(10);
         m_Overlay->SetVisible(true);
     }
