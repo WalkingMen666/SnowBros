@@ -71,6 +71,15 @@ void App::Update() {
         } else if (!Util::Input::IsKeyDown(Util::Keycode::N)) {
             hasSwitchedPhase = false;
         }
+
+        if(Util::Input::IsKeyDown(Util::Keycode::H)) {
+            LOG_INFO("Add one health");
+            m_Nick->AddHealth();
+        }
+        if(Util::Input::IsKeyDown(Util::Keycode::I)) {
+            LOG_INFO("Nick is invincible now");
+            m_Nick->CheatInvincible();
+        }
     }
 
     if (m_CurrentLevel == -1) {
@@ -176,6 +185,7 @@ void App::Update() {
                 if (m_LevelingTimer < m_LevelingDuration) {
                     m_Overlay->SetImage(RESOURCE_DIR "/Image/Floor/FLOOR" + std::to_string(m_CurrentLevel + 1) + ".png");
                     m_Overlay->SetVisible(true);
+                    m_nickLives->SetVisible(false);
                 }else {
                     m_LevelingTimer = 0.0f;
                     m_Overlay->SetVisible(false);
@@ -194,6 +204,7 @@ void App::Update() {
         m_CurrentState = State::END;
     }
 
+    UpdateUI();
     m_Root.Update();
 }
 
@@ -246,6 +257,7 @@ void App::InitializeLevel(int levelId) {
     m_FadeTimer = 0.0f;
     m_FadingIn = true;
     m_Overlay->SetVisible(levelId == -1);
+    m_nickLives->SetVisible(levelId > 0);
 
     if (levelId == 1) {
         if (!m_Nick) {
@@ -286,5 +298,12 @@ void App::SpawnEnemiesForLevel(int levelId) {
             }
             break;
         }
+    }
+}
+
+void App::UpdateUI() {
+    if(m_Nick) {
+        int lives = m_Nick->GetLives();
+        m_nickLives->SetImage(RESOURCE_DIR "/Image/Text/red_" + std::to_string(lives) + ".png");
     }
 }

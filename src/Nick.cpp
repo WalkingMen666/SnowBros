@@ -88,7 +88,6 @@ void Nick::Update() {
         case State::SPAWN:
             if (IsAnimationFinished()) {
                 SetState(State::IDLE);
-                // SetInvincible(true);
             }
             break;
         case State::IDLE:

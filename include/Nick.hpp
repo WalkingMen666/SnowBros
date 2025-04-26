@@ -24,6 +24,9 @@ public:
     void SetInvincible(bool invincible);
     void OnCollision(std::shared_ptr<Util::GameObject> other);
     void SetDirection(bool facingRight);
+    void AddHealth() { m_Lives = std::min(9, m_Lives+=1); }
+    void CheatInvincible() { m_IsInvincible = !m_IsInvincible; m_InvincibleTimer = 99999.0f; this->SetVisible(true);}
+
 
     [[nodiscard]] State GetState() const { return m_State; }
     [[nodiscard]] bool IsAnimationFinished() const { return IfAnimationEnds(); }
@@ -33,6 +36,8 @@ public:
     [[nodiscard]] float GetWidth() const override { return characterWidth; }
     [[nodiscard]] float GetHeight() const override { return characterHeight; }
     [[nodiscard]] float GetSpeed() const { return m_Speed; }
+    [[nodiscard]] int GetLives() const { return m_Lives; }
+
 
 private:
     // State and Animation

@@ -79,6 +79,9 @@ private:
     std::vector<std::shared_ptr<UpdatableDrawable>> m_PendingObjects;
     std::vector<std::shared_ptr<UpdatableDrawable>> m_RemovingObjects;
 
+    // UI
+    std::shared_ptr<BackgroundImage> m_nickLives;
+
     // Animation and Timing
     float m_FadeTimer = 0.0f;
     const float m_FadeDuration = 4.0f;
@@ -92,6 +95,7 @@ private:
     void InitializeLevel(int levelId);
     void UpdateFadeAnimation(float deltaTime);
     void SpawnEnemiesForLevel(int levelId);
+    void UpdateUI();
 };
 
 #endif // APP_HPP

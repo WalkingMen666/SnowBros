@@ -27,6 +27,14 @@ void App::Start() {
     m_Overlay->SetZIndex(5); // 設置 Z 軸順序
     m_Root.AddChild(m_Overlay);
 
+    // 初始化 UI
+    m_nickLives = std::make_shared<BackgroundImage>();
+    m_nickLives->SetImage(RESOURCE_DIR "/Image/Text/red_3.png");
+    m_nickLives->m_Transform.translation = {-320.0f, 350.0f};
+    m_nickLives->SetZIndex(5);
+    m_nickLives->SetVisible(false);
+    m_Root.AddChild(m_nickLives);
+
     // 初始化為初始畫面
     InitializeLevel(-1);
     m_CurrentState = State::UPDATE;
