@@ -91,7 +91,6 @@ void SmallBoss::Update() {
         if (m_CurrentState == State::WALK) {
              m_Drawable = m_Animations[(m_Direction == Direction::Right) ? "walk_right" : "walk_left"];
         }
-
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
             m_Snowball->Update();
@@ -177,7 +176,7 @@ void SmallBoss::Die() {
 }
 
 std::pair<float, float> SmallBoss::GetSizeForMeltStage() const {
-    return m_State == EnemyState::Snowball ? std::make_pair(20.0f, 20.0f) : std::make_pair(m_Width, m_Height);
+    return m_State == EnemyState::Snowball ? std::make_pair(42.0f, 44.0f) : std::make_pair(m_Width, m_Height);
 }
 
 void SmallBoss::SetState(State state) {

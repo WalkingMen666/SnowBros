@@ -31,7 +31,7 @@ void App::Start() {
     // 初始化 UI
     m_nickLives = std::make_shared<BackgroundImage>();
     m_nickLives->SetImage(RESOURCE_DIR "/Image/Text/red_3.png");
-    m_nickLives->m_Transform.translation = {-320.0f, 350.0f};
+    m_nickLives->m_Transform.translation = {-320.0f, 360.0f};
     m_nickLives->SetZIndex(5);
     m_nickLives->SetVisible(false);
     m_Root.AddChild(m_nickLives);
