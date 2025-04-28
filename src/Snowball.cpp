@@ -30,7 +30,7 @@ void Snowball::Update() {
 
             if (position.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - 46.0f) / 2
                 || position.x <= (-Map::MAP_WIDTH * Map::TILE_SIZE + 46.0f) / 2
-                || GameWorld::CollisionToWall(position, m_Width, m_Height, m_IsOnPlatform)) {
+                || GameWorld::CollisionToWall(position, m_Width, m_Height - 10, m_IsOnPlatform)) {
                 m_Direction = (m_Direction == Direction::Right) ? Direction::Left : Direction::Right;
                 ++IsOnEdge;
             }
@@ -83,7 +83,7 @@ void Snowball::Update() {
         }
     }
 
-    if (!isBeingPushed && m_SnowballState == SnowballState::Static) {
+    if (!isBeingPushed && m_SnowballState != SnowballState::Kicked && m_SnowballState != SnowballState::Killed) {
         m_SnowballState = SnowballState::Static;
         position = CalculatePosition(m_Width, m_Height);
         m_MeltTimer += deltaTime;
