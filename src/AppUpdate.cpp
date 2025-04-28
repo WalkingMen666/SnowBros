@@ -9,6 +9,8 @@
 #include "FrogBullet.hpp"
 #include "Enemy.hpp"
 #include "Bullet.hpp"
+#include "Boss.hpp"
+#include "SmallBoss.hpp"
 
 void App::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
@@ -288,8 +290,10 @@ void App::SpawnEnemiesForLevel(int levelId) {
                     enemy = std::make_shared<RedDemon>(pos);
                 }else if (enemyType == "Frog") {
                     enemy = std::make_shared<Frog>(pos);
-                }else if (enemyType == "Boss1" || enemyType == "Boss2" || enemyType == "Boss3") {
-                    enemy = std::make_shared<RedDemon>(pos);
+                }else if (enemyType == "Boss" || enemyType == "Boss2" || enemyType == "Boss3") {
+                    enemy = std::make_shared<Boss>(pos);
+                }else if (enemyType == "SmallBoss") {
+                    enemy = std::make_shared<SmallBoss>(pos);
                 }
                 if (enemy) {
                     GameWorld::AddObject(enemy);

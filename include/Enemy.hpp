@@ -33,7 +33,7 @@ public:
     [[nodiscard]] std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }
     [[nodiscard]] glm::vec2 GetPosition() const { return m_Transform.translation; }
     [[nodiscard]] int GetMeltStage() const { return m_MeltStage; }
-    [[nodiscard]] virtual std::shared_ptr<Snowball> GetSnowball() const = 0;
+    [[nodiscard]] virtual std::shared_ptr<Snowball> GetSnowball() const{return  nullptr;}
     [[nodiscard]] virtual float GetCharacterWidth() const = 0;
     [[nodiscard]] virtual float GetCharacterHeight() const = 0;
     [[nodiscard]] virtual float GetJumpVelocity() const = 0;

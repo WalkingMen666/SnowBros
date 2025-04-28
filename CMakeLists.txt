@@ -59,6 +59,10 @@ add_executable(${PROJECT_NAME}
         src/Frog.cpp
         include/FrogBullet.hpp
         src/FrogBullet.cpp
+        include/SmallBoss.hpp
+        include/Boss.hpp
+        src/Boss.cpp
+        src/SmallBoss.cpp
 )
 
 if(MSVC)
