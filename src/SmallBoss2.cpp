@@ -1,4 +1,4 @@
-#include "SmallBoss.hpp"
+#include "SmallBoss2.hpp"
 #include "Nick.hpp"
 #include "Snowball.hpp"
 #include "Map.hpp"
@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <ctime>
 
-SmallBoss::SmallBoss(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/boss1_small_fall_left.png", pos) {
+SmallBoss2::SmallBoss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/boss1_small_fall_left.png", pos) {
     LoadAnimations();
     SetState(State::FALL); // 初始為 FALL 狀態
     m_Drawable = m_Animations["fall_left"]; // 初始動畫為 fall_left
@@ -17,7 +17,7 @@ SmallBoss::SmallBoss(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Characte
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 }
 
-void SmallBoss::Update() {
+void SmallBoss2::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     glm::vec2 position = GetPosition();
     glm::vec2 newPosition = position;
@@ -147,7 +147,7 @@ void SmallBoss::Update() {
     }
 }
 
-void SmallBoss::OnHit() {
+void SmallBoss2::OnHit() {
     if (m_State == EnemyState::Normal) {
         if (++m_HitCount >= m_MaxHits) {
             m_State = EnemyState::Snowball;
@@ -162,7 +162,7 @@ void SmallBoss::OnHit() {
     }
 }
 
-void SmallBoss::Die() {
+void SmallBoss2::Die() {
     if (m_State == EnemyState::Snowball) {
         m_Snowball->SetVisible(false);
         App::GetInstance().AddRemovingObject(m_Snowball);
@@ -176,11 +176,11 @@ void SmallBoss::Die() {
     }
 }
 
-std::pair<float, float> SmallBoss::GetSizeForMeltStage() const {
-    return m_State == EnemyState::Snowball ? std::make_pair(42.0f, 44.0f) : std::make_pair(m_Width, m_Height);
+std::pair<float, float> SmallBoss2::GetSizeForMeltStage() const {
+    return m_State == EnemyState::Snowball ? std::make_pair(20.0f, 20.0f) : std::make_pair(m_Width, m_Height);
 }
 
-void SmallBoss::SetState(State state) {
+void SmallBoss2::SetState(State state) {
     m_CurrentState = state;
 
     switch (state) {
@@ -198,7 +198,7 @@ void SmallBoss::SetState(State state) {
     }
 }
 
-void SmallBoss::OnCollision(std::shared_ptr<Util::GameObject> other) {
+void SmallBoss2::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (auto nick = std::dynamic_pointer_cast<Nick>(other)) {
         if (m_State == EnemyState::Normal) {
             nick->Die();
@@ -206,7 +206,7 @@ void SmallBoss::OnCollision(std::shared_ptr<Util::GameObject> other) {
     }
 }
 
-void SmallBoss::LoadAnimations() {
+void SmallBoss2::LoadAnimations() {
     m_Animations["stand_left"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "boss1_small_stand_left.png"}, false, 500, true, 0);
     m_Animations["stand_right"] = std::make_shared<Util::Animation>(

@@ -8,11 +8,11 @@
 #include <cstdlib>
 #include <ctime>
 
-class Boss : public Enemy {
+class Boss : public Enemy , public std::enable_shared_from_this<Boss>{
 public:
     enum class BossState { Stand, Jump, Lean, Down, Die, Dead };
 
-    Boss(const glm::vec2& pos = {385.0f, 92.0f});
+    Boss(const glm::vec2& pos = {385.0f, 80.0f});
     void Update() override;
     void OnHit() override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
@@ -37,7 +37,7 @@ private:
     bool m_IsOnPlatform = true;
     bool m_IsJumpingDown = false;
     float m_SmallJumpTimer = 0.0f;
-    static constexpr float m_SmallJumpInterval = 2.5f;
+    static constexpr float m_SmallJumpInterval = 1.0f;
     int m_SmallJumpCount = 0;
     int m_RandomJumpLimit = 5;
     int m_Health = 10;

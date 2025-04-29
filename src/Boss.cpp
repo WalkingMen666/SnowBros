@@ -61,9 +61,9 @@ void Boss::SwitchAnimation(BossState state) {
         glm::vec2 position = GetPosition();
         // 調整位置，保持底部對齊當前表面
         if (m_IsOnPlatform) {
-            position.y = -50.0f + newHeight / 2.0f; // 平台底部 -50
+            position.y = -70.0f + newHeight / 2.0f; // 平台底部 -50
         } else {
-            position.y = -310.0f + newHeight / 2.0f; // 地面底部 -310
+            position.y = -330.0f + newHeight / 2.0f; // 地面底部 -310
         }
         SetPosition(position);
         m_CurrentHeight = newHeight;
@@ -94,15 +94,15 @@ void Boss::Update() {
             if (m_SmallJumpCount >= m_RandomJumpLimit) {
                 m_SmallJumpCount = 0;
                 m_RandomJumpLimit = 3 + std::rand() % 8;
-                if (position.y > -51.0f) { // 在平台上
+                if (position.y > -71.0f) { // 在平台上
                     m_JumpVelocity = 0.0f;
                     m_CurrentState = BossState::Jump;
                     SwitchAnimation(BossState::Jump);
                     m_IsOnPlatform = false;
                     m_IsJumpingDown = true;
-                    App::GetInstance().AddPendingObject(std::make_shared<SmallBoss>(glm::vec2(200.0f, 130.0f)));
-                    App::GetInstance().AddPendingObject(std::make_shared<SmallBoss>(glm::vec2(200.0f, 50.0f)));
-                    App::GetInstance().AddPendingObject(std::make_shared<SmallBoss>(glm::vec2(200.0f, -30.0f)));
+                    App::GetInstance().AddPendingObject(std::make_shared<SmallBoss>(glm::vec2(200.0f, 110.0f)));
+                    App::GetInstance().AddPendingObject(std::make_shared<SmallBoss>(glm::vec2(200.0f, 30.0f)));
+                    App::GetInstance().AddPendingObject(std::make_shared<SmallBoss>(glm::vec2(200.0f, -50.0f)));
                     LOG_INFO("Boss jumping down from platform ({} jumps)", m_RandomJumpLimit);
                 } else { // 在地面
                     m_JumpVelocity = m_JumpInitialVelocity;
@@ -132,21 +132,21 @@ void Boss::Update() {
             SetPosition(newPosition);
             position = newPosition;
 
-            if (m_IsJumpingDown && position.y <= -51.0f) {
+            if (m_IsJumpingDown && position.y <= -71.0f) {
                 m_IsJumpingDown = false;
                 LOG_INFO("Boss has cleared platform range");
             }
 
             if (m_JumpVelocity <= 0.0f) {
-                if (position.y <= -310.0f + m_CurrentHeight / 2) { // 地面底部 -310
-                    SetPosition({position.x, -310.0f + m_CurrentHeight / 2});
+                if (position.y <= -330.0f + m_CurrentHeight / 2) { // 地面底部 -310
+                    SetPosition({position.x, -330.0f + m_CurrentHeight / 2});
                     m_JumpVelocity = 0.0f;
                     m_IsOnPlatform = false; // 地面不是平台
                     m_CurrentState = BossState::Stand;
                     SwitchAnimation(BossState::Stand);
                     LOG_INFO("Boss landed on ground");
-                } else if (!m_IsJumpingDown && position.y <= -50.0f + m_CurrentHeight / 2 && position.y > -51.0f) { // 平台
-                    SetPosition({position.x, -50.0f + m_CurrentHeight / 2});
+                } else if (!m_IsJumpingDown && position.y <= -70.0f + m_CurrentHeight / 2 && position.y > -71.0f) { // 平台
+                    SetPosition({position.x, -70.0f + m_CurrentHeight / 2});
                     m_JumpVelocity = 0.0f;
                     m_IsOnPlatform = true;
                     m_CurrentState = BossState::Stand;
@@ -176,6 +176,16 @@ void Boss::Update() {
                 m_CurrentState = BossState::Dead;
                 m_State = EnemyState::Dead;
                 LOG_INFO("Boss defeated!");
+
+                // // 移除 Boss
+                App::GetInstance().AddRemovingObject(shared_from_this());
+
+                // 移除所有 SmallBoss
+                for (auto& obj : GameWorld::GetObjects()) {
+                    if (std::dynamic_pointer_cast<SmallBoss>(obj)) {
+                        App::GetInstance().AddRemovingObject(obj);
+                    }
+                }
             }
         }
     }

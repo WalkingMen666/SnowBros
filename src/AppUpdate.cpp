@@ -11,6 +11,7 @@
 #include "Bullet.hpp"
 #include "Boss.hpp"
 #include "SmallBoss.hpp"
+#include "SmallBoss2.hpp"
 
 void App::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
@@ -294,6 +295,8 @@ void App::SpawnEnemiesForLevel(int levelId) {
                     enemy = std::make_shared<Boss>(pos);
                 }else if (enemyType == "SmallBoss") {
                     enemy = std::make_shared<SmallBoss>(pos);
+                }else if (enemyType == "SmallBoss2") {
+                    enemy = std::make_shared<SmallBoss2>(pos);
                 }
                 if (enemy) {
                     GameWorld::AddObject(enemy);
