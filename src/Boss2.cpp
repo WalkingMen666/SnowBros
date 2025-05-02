@@ -70,6 +70,13 @@ void Boss2::Update() {
 
             for (const auto& corner : corners) {
                 auto smallBoss2 = std::make_shared<SmallBoss2>(corner);
+                if (corner.x < 0) {
+                    smallBoss2->SetDirection(Direction::Left);
+                    smallBoss2->SetInitialVelocityX(-400);
+                } else {
+                    smallBoss2->SetDirection(Direction::Right);
+                    smallBoss2->SetInitialVelocityX(400);
+                }
                 App::GetInstance().AddPendingObject(smallBoss2);
                 m_SmallBosses.push_back(smallBoss2);
             }
@@ -155,22 +162,22 @@ void Boss2::LoadAnimations() {
             RESOURCE_DIR "/Image/Character/Boss/boss2_3.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_4.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_5.png"
-        }, true, 200);
+        }, false, 200, false, 0);
 
     // Stand animation
     m_Animations["stand"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{RESOURCE_DIR "/Image/Character/Boss/boss2_5.png"}, true, 200);
+        std::vector<std::string>{RESOURCE_DIR "/Image/Character/Boss/boss2_5.png"}, false, 200, false, 0);
 
     // Shoot animation
     m_Animations["shoot"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{RESOURCE_DIR "/Image/Character/Boss/boss2_6.png"}, true, 200);
+        std::vector<std::string>{RESOURCE_DIR "/Image/Character/Boss/boss2_6.png"}, false, 200, false, 0);
 
     // Dead animation (5 frames, assuming additional images)
     m_Animations["dead"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{
             RESOURCE_DIR "/Image/Character/Boss/boss2_die1.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_die2.png"
-        }, true, 200, true, 0);
+        }, false, 200, true, 0);
 
     // Disappear animation (5 frames, during position switch)
     m_Animations["disappear"] = std::make_shared<Util::Animation>(
@@ -180,25 +187,30 @@ void Boss2::LoadAnimations() {
             RESOURCE_DIR "/Image/Character/Boss/boss2_3.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_2.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_1.png"
-        }, true, 200);
+        }, false, 200, false, 0);
 }
 
 void Boss2::SwitchAnimation(BossState state) {
     switch (state) {
         case BossState::Appear:
             m_Drawable = m_Animations["appear"];
+            m_Animations["appear"]->Play();
             break;
         case BossState::Stand:
             m_Drawable = m_Animations["stand"];
+            m_Animations["stand"]->Play();
             break;
         case BossState::Shoot:
             m_Drawable = m_Animations["shoot"];
+            m_Animations["shoot"]->Play();
             break;
         case BossState::Dead:
             m_Drawable = m_Animations["dead"];
+            m_Animations["dead"]->Play();
             break;
         case BossState::Disappear:
             m_Drawable = m_Animations["disappear"];
+            m_Animations["disappear"]->Play();
             break;
     }
 }

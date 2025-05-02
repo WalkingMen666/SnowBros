@@ -85,9 +85,6 @@ void Boss::Update() {
     if (m_CurrentState == BossState::Stand || m_CurrentState == BossState::Jump) {
         m_SmallJumpTimer += deltaTime;
 
-        // LOG_DEBUG("Boss position: {}, State: {}, SmallJumpTimer: {}, SmallJumpCount: {}, RandomJumpLimit: {}, IsOnPlatform: {}, JumpVelocity: {}, IsJumpingDown: {}",
-                  // glm::to_string(position), static_cast<int>(m_CurrentState), m_SmallJumpTimer, m_SmallJumpCount, m_RandomJumpLimit, m_IsOnPlatform, m_JumpVelocity, m_IsJumpingDown);
-
         if (m_CurrentState == BossState::Stand && m_SmallJumpTimer >= m_SmallJumpInterval) {
             m_SmallJumpTimer = 0.0f;
             m_SmallJumpCount++;
@@ -113,7 +110,7 @@ void Boss::Update() {
                     m_IsJumpingDown = false;
                     LOG_INFO("Boss jumping up to platform ({} jumps)", m_RandomJumpLimit);
                 }
-            } else {
+            } else {    //地面小跳
                 m_JumpVelocity = m_JumpInitialVelocity * 0.5f;
                 m_CurrentState = BossState::Jump;
                 SwitchAnimation(BossState::Jump);

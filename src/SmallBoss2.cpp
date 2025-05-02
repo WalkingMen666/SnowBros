@@ -12,7 +12,7 @@ SmallBoss2::SmallBoss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Charac
     m_Drawable = m_Animations["fly_left"]; // 初始動畫為 fly_left
     m_TargetDirection = Direction::Left; // 初始面向左邊
     m_Direction = Direction::Left;
-    m_InitialVelocityX = -600.0f; // 初始速度
+    m_InitialVelocityX = -400.0f; // 初始速度
     m_IsEjecting = true; // 啟用彈射階段
     std::srand(static_cast<unsigned>(std::time(nullptr)));
 }
@@ -94,6 +94,9 @@ void SmallBoss2::Update() {
         if (m_CurrentState == State::WALK) {
              m_Drawable = m_Animations[(m_Direction == Direction::Right) ? "walk_right" : "walk_left"];
         }
+        // if (m_CurrentState == State::DIE) {
+        //     m_Drawable = m_Animations["die"];
+        // }
 
         if (m_MaxHealth <= 0) {
             m_CurrentState = State::DIE;
@@ -136,11 +139,12 @@ void SmallBoss2::Update() {
         m_DeathTimer += deltaTime;
         if (!m_HasLanded) {
             newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
-            if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= -310.0f + m_Height / 2)) {
-                newPosition.y = -310.0f + m_Height / 2;
+            if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= m_GroundLevel)) {
+                if(newPosition.y < m_GroundLevel) newPosition.y = m_GroundLevel;
                 m_DeathVelocity = 0.0f;
                 m_HasLanded = true;
                 m_DeathTimer = 0.0f;
+                SetAnimation("die");
             }
         } else {
             newPosition = GameWorld::map_collision_judgement(20, 20, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
@@ -185,6 +189,7 @@ void SmallBoss2::Die() {
         m_DeathTimer = 0.0f;
         m_HasLanded = false;
         m_DeathVelocity = 450.0f;
+        SetAnimation("die");
     }
 }
 
@@ -209,7 +214,7 @@ void SmallBoss2::SetState(State state) {
             SetAnimation((m_Direction == Direction::Right) ? "fly_right" : "fly_left");
         break;
         case State::DIE:
-            SetAnimation((m_Direction == Direction::Right) ? "fly_right" : "fly_left");
+            SetAnimation("die");
             break;
     }
 }

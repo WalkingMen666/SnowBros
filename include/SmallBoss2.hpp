@@ -11,6 +11,7 @@
 #include "GameWorld.hpp"
 #include "Snowball.hpp"
 #include <memory>
+#include "App.hpp"
 
 class SmallBoss2 : public Enemy, public std::enable_shared_from_this<SmallBoss2> {
 public:
@@ -21,6 +22,13 @@ public:
     void OnHit() override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;
     void Die() override;
+    void SetDirection(Direction direction) {
+        m_Direction = direction;
+        m_TargetDirection = direction;
+    }
+    void SetInitialVelocityX(float initialVelocityX) {
+        m_InitialVelocityX = initialVelocityX;
+    }
 
     [[nodiscard]] float GetCharacterWidth() const override { return GetSizeForMeltStage().first; }
     [[nodiscard]] float GetCharacterHeight() const override { return GetSizeForMeltStage().second; }
