@@ -92,6 +92,15 @@ void SmallBoss::Update() {
              m_Drawable = m_Animations[(m_Direction == Direction::Right) ? "walk_right" : "walk_left"];
         }
 
+        if (m_MaxHealth <= 0) {
+            m_CurrentState = State::DIE;
+            SetState(State::DIE);
+            m_State = EnemyState::Dead;
+            m_DeathTimer = 0.0f;
+            m_HasLanded = false;
+            m_DeathVelocity = 450.0f;
+        }
+
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
             m_Snowball->Update();

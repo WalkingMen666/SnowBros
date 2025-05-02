@@ -28,6 +28,7 @@ public:
     virtual void Die() { m_State = EnemyState::Dead; }
     void SetAnimation(const std::string& key);
     void SetMeltStage(int stage);
+    void GetAttacked(){m_MaxHealth--;};
 
     [[nodiscard]] EnemyState GetState() const { return m_State; }
     [[nodiscard]] std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }
@@ -49,6 +50,7 @@ protected:
     EnemyState m_State;
     int       m_MeltStage = 0;
     float     m_MeltTimer = 0.0f;
+    int m_MaxHealth = 1;
 
     // Constants
     static constexpr float m_GroundLevel = -325.0f;

@@ -5,6 +5,7 @@
 Boss::Boss(const glm::vec2& pos)
     : Enemy(RESOURCE_DIR "/Image/Character/Boss/boss1_stand.png", pos) {
     m_MaxHits = 999;
+    m_MaxHealth = 2800;
     std::srand(static_cast<unsigned>(std::time(nullptr)));
     m_RandomJumpLimit = 3 + std::rand() % 8;
     LoadAnimations();
@@ -155,7 +156,9 @@ void Boss::Update() {
                 }
             }
 
-            if (m_Health <= 0) {
+
+            LOG_INFO("Boss Health: {}",m_MaxHealth);
+            if (m_MaxHealth <= 0) {
                 m_CurrentState = BossState::Lean;
                 SwitchAnimation(BossState::Lean);
                 m_DieTimer = 0.0f;
@@ -193,8 +196,8 @@ void Boss::Update() {
 
 void Boss::OnHit() {
     if (m_CurrentState != BossState::Stand && m_CurrentState != BossState::Jump) return;
-    m_Health--;
-    LOG_INFO("Boss hit by bullet, Health: {}/{}", m_Health, m_MaxHealth);
+    m_MaxHealth--;
+    LOG_INFO("Boss Health:",m_MaxHealth);
 }
 
 void Boss::OnCollision(std::shared_ptr<Util::GameObject> other) {

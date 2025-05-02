@@ -20,7 +20,7 @@ public:
     float GetCharacterWidth() const override { return m_BossWidth; }
     float GetCharacterHeight() const override { return m_CurrentHeight; }
     float GetJumpVelocity() const override { return m_JumpVelocity; }
-    int GetHealth() const { return m_Health; }
+    // int GetHealth() const { return m_Health; }
     int GetMaxHealth() const { return m_MaxHealth; }
     BossState GetState() const { return m_CurrentState; }
 
@@ -40,8 +40,8 @@ private:
     static constexpr float m_SmallJumpInterval = 1.0f;
     int m_SmallJumpCount = 0;
     int m_RandomJumpLimit = 5;
-    int m_Health = 10;
-    static constexpr int m_MaxHealth = 10;
+    // int m_Health = 10;
+    // static constexpr int m_MaxHealth = 10;
     float m_DieTimer = 0.0f;
     static constexpr float m_DieDuration = 1.0f;
     BossState m_CurrentState = BossState::Stand;

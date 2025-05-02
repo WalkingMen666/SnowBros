@@ -14,7 +14,7 @@
 
 class SmallBoss2 : public Enemy, public std::enable_shared_from_this<SmallBoss2> {
 public:
-    enum class State { STAND, WALK, JUMP, FALL, DIE };
+    enum class State { STAND, WALK, JUMP, FALL, FLY, DIE };
 
     SmallBoss2(const glm::vec2& pos);
     void Update() override;

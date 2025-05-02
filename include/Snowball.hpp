@@ -9,7 +9,7 @@
 
 class Enemy;
 
-class Snowball : public UpdatableDrawable {
+class Snowball : public UpdatableDrawable , public std::enable_shared_from_this<Snowball>{
 public:
     enum class SnowballState { Static, Pushed, Kicked, Killed };
 

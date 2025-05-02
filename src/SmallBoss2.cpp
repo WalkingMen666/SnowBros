@@ -6,10 +6,10 @@
 #include <cstdlib>
 #include <ctime>
 
-SmallBoss2::SmallBoss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/boss1_small_fall_left.png", pos) {
+SmallBoss2::SmallBoss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/smallboss2_fly_left.png", pos) {
     LoadAnimations();
-    SetState(State::FALL); // 初始為 FALL 狀態
-    m_Drawable = m_Animations["fall_left"]; // 初始動畫為 fall_left
+    SetState(State::FLY); // 初始為 FLY 狀態
+    m_Drawable = m_Animations["fly_left"]; // 初始動畫為 fly_left
     m_TargetDirection = Direction::Left; // 初始面向左邊
     m_Direction = Direction::Left;
     m_InitialVelocityX = -600.0f; // 初始速度
@@ -28,17 +28,17 @@ void SmallBoss2::Update() {
 
         // 計算移動距離和狀態
         if (m_IsEjecting) {
-            // 彈射階段：向左移動，動畫為 fall_left，保持下墜
+            // 彈射階段：向左移動，動畫為 fly_left，保持下墜
             moveDistance = m_InitialVelocityX * deltaTime;
-            m_Drawable = m_Animations["fall_left"];
-            SetState(State::FALL);
+            m_Drawable = m_Animations["fly_left"];
+            SetState(State::FLY);
         } else {
             // 正常狀態
             if (!m_IsOnPlatform || m_JumpVelocity != 0.0f) {
-                // 下墜中：無水平移動，動畫為 fall_left
+                // 下墜中：無水平移動，動畫為 fly_left
                 moveDistance = 0.0f;
-                m_Drawable = m_Animations["fall_left"];
-                SetState(State::FALL);
+                m_Drawable = m_Animations["fly_left"];
+                SetState(State::FLY);
             } else {
                 // 落地後：進入 WALK 狀態並移動
                 SetState(State::WALK);
@@ -58,7 +58,6 @@ void SmallBoss2::Update() {
             m_Direction = Direction::Left;
             m_TargetDirection = Direction::Left;
             SetState(State::WALK);
-            // m_Drawable = m_Animations["walk_left"];
             LOG_DEBUG("Ejection ended: Position: {}, IsOnPlatform: {}", glm::to_string(newPosition), m_IsOnPlatform);
         }
 
@@ -79,10 +78,14 @@ void SmallBoss2::Update() {
                 m_Drawable = m_Animations["walk_right"];
                 SetState(State::WALK);
             } else if (newPosition.x >= (Map::MAP_WIDTH * Map::TILE_SIZE - m_Width) / 2) { // 右邊界
-                App::GetInstance().AddRemovingObject(shared_from_this());
-            } else if (!m_IsOnPlatform) { // 下墜不移動
                 m_IsChangingDirection = true;
                 m_TargetDirection = Direction::Left;
+                // m_Direction = Direction::Right;
+                m_Drawable = m_Animations["walk_left"];
+                SetState(State::WALK);
+            } else if (!m_IsOnPlatform) { // 下墜不移動
+                // m_IsChangingDirection = true;
+                // m_TargetDirection = Direction::Left;
                 SetState(State::FALL);
                 // moveDistance = 0.0f;
             }
@@ -90,6 +93,15 @@ void SmallBoss2::Update() {
         SetPosition(newPosition);
         if (m_CurrentState == State::WALK) {
              m_Drawable = m_Animations[(m_Direction == Direction::Right) ? "walk_right" : "walk_left"];
+        }
+
+        if (m_MaxHealth <= 0) {
+            m_CurrentState = State::DIE;
+            SetState(State::DIE);
+            m_State = EnemyState::Dead;
+            m_DeathTimer = 0.0f;
+            m_HasLanded = false;
+            m_DeathVelocity = 450.0f;
         }
 
     } else if (m_State == EnemyState::Snowball) {
@@ -177,7 +189,7 @@ void SmallBoss2::Die() {
 }
 
 std::pair<float, float> SmallBoss2::GetSizeForMeltStage() const {
-    return m_State == EnemyState::Snowball ? std::make_pair(20.0f, 20.0f) : std::make_pair(m_Width, m_Height);
+    return m_State == EnemyState::Snowball ? std::make_pair(40.0f, 40.0f) : std::make_pair(m_Width, m_Height);
 }
 
 void SmallBoss2::SetState(State state) {
@@ -191,9 +203,13 @@ void SmallBoss2::SetState(State state) {
             SetAnimation((m_Direction == Direction::Right) ? "walk_right" : "walk_left");
             break;
         case State::FALL:
-            SetAnimation("fall_left");
+            SetAnimation((m_Direction == Direction::Right) ? "walk_right" : "walk_left");
             break;
+        case State::FLY:
+            SetAnimation((m_Direction == Direction::Right) ? "fly_right" : "fly_left");
+        break;
         case State::DIE:
+            SetAnimation((m_Direction == Direction::Right) ? "fly_right" : "fly_left");
             break;
     }
 }
@@ -208,15 +224,17 @@ void SmallBoss2::OnCollision(std::shared_ptr<Util::GameObject> other) {
 
 void SmallBoss2::LoadAnimations() {
     m_Animations["stand_left"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "boss1_small_stand_left.png"}, false, 500, true, 0);
+        std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_left.png"}, false, 500, true, 0);
     m_Animations["stand_right"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "boss1_small_stand_right.png"}, false, 500, true, 0);
+        std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_right.png"}, false, 500, true, 0);
     m_Animations["walk_left"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "boss1_small_stand_left.png", BASE_PATH + "boss1_small_walk_left_2.png"}, false, 200, true, 0);
+        std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_left.png", BASE_PATH + "smallboss2_smile_walk_left.png"}, false, 200, true, 0);
     m_Animations["walk_right"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "boss1_small_stand_right.png", BASE_PATH + "boss1_small_walk_right_2.png"}, false, 200, true, 0);
-    m_Animations["fall_left"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "boss1_small_fall_left.png"}, false, 500, false, 0);
-    m_Animations["fall_right"] = std::make_shared<Util::Animation>(
-        std::vector<std::string>{BASE_PATH + "boss1_small_fall_right.png"}, false, 500, false, 0);
+        std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_right.png", BASE_PATH + "smallboss2_smile_walk_right.png"}, false, 200, true, 0);
+    m_Animations["fly_left"] = std::make_shared<Util::Animation>(
+        std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_left.png"}, false, 500, false, 0);
+    m_Animations["fly_right"] = std::make_shared<Util::Animation>(
+        std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_right.png"}, false, 500, false, 0);
+    m_Animations["die"] = std::make_shared<Util::Animation>(
+    std::vector<std::string>{BASE_PATH + "blue_circle.png", BASE_PATH + "red_circle.png", BASE_PATH + "blue_pig.png", BASE_PATH + "red_pig.png"}, false, 50, true, 0);
 }

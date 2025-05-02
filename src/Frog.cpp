@@ -118,6 +118,17 @@ void Frog::Update() {
             }
             SetPosition(newPosition);
         }
+
+        if (m_MaxHealth <= 0) {
+            m_State = EnemyState::Dead;
+            SetState(State::DIE);
+            m_State = EnemyState::Dead;
+            m_DeathTimer = 0.0f;
+            m_HasLanded = false;
+            m_DeathVelocity = 450.0f;
+            SetAnimation("die_flying");
+        }
+
     } else if (m_State == EnemyState::Snowball) {
         // Snowball 狀態邏輯保持不變
         if (m_Snowball) {

@@ -1,6 +1,7 @@
 #include "Snowball.hpp"
 #include "GameWorld.hpp"
 #include "Nick.hpp"
+#include "Enemy.hpp"
 
 Snowball::Snowball(const glm::vec2& initialPosition, std::shared_ptr<Enemy> sourceEnemy)
     : m_SourceEnemy(sourceEnemy) {
@@ -127,7 +128,11 @@ void Snowball::CheckCollisionWithEnemies() {
             if (auto source = m_SourceEnemy.lock()) {
                 if (source == enemy) continue; // 跳過來源敵人
             }
-            if (enemy->IsBoss()) continue;    // 排除 Boss
+
+            // if (enemy->IsBoss()) {
+            //     App::GetInstance().AddRemovingObject(shared_from_this());
+            //     enemy->GetAttacked(); //
+            // };
 
             glm::vec2 enemyPos = enemy->GetPosition();
             float enemyLeft = enemyPos.x - enemy->GetWidth() / 2;
@@ -137,7 +142,8 @@ void Snowball::CheckCollisionWithEnemies() {
 
             if (snowballRight > enemyLeft && snowballLeft < enemyRight &&
                 snowballTop > enemyBottom && snowballBottom < enemyTop) {
-                enemy->Die(); // 調用死亡處理
+                if (enemy->IsBoss()) { App::GetInstance().AddRemovingObject(shared_from_this()); }
+                enemy->GetAttacked(); //
             }
         }
     }

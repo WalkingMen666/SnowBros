@@ -6,11 +6,12 @@ App::App() {
     m_LevelConfigs = {
         { -1, false, {} }, // 初始畫面
         { 0, false, {} },  // 開始畫面
-        { 1, false, { {"RedDemon", {-260.0f, 160.0f}}, {"RedDemon", {260.0f, 160.0f}}, {"Frog", {0.0f, -40.0f}}, } },
+        { 1, false, { {"RedDemon", {-260.0f, 160.0f}}, {"RedDemon", {260.0f, 160.0f}}, {"Frog", {0.0f, -40.0f}},{"SmallBoss2", {-200.0f, 160.0f}},{"SmallBoss2", {200.0f, 160.0f}}, {"SmallBoss", {100.0f, 100.0f}}, {"SmallBoss", {0.0f, 0.0f}} } },
         { 2, false, { {"RedDemon", {150.0f, 100.0f}}, {"RedDemon", {-150.0f, 100.0f}}, {"RedDemon", {-110.0f, -185.0f}}, {"RedDemon", {65.0f, -80.0f}}}},
         { 3, false, {{"RedDemon", {-260.0f, 160.0f}}} }, // 第3關: 無敵人
         { 9, false, {} }, // 第3關: 無敵人
         { 10,true, { {"Boss", {300.0f, 80.0f}}, } }, // 第10關: 1隻 Boss
+        { 20,true, { {"Boss2", {0.0f, 100.0f}}, } }, // 第20關: 1隻 Boss2
         // { 28, true, { {"Boss1", {300.0f, 200.0f}} } }, // Boss 關示例
         // { 29, true, { {"Boss2", {350.0f, 250.0f}} } },
         // { 30, true, { {"Boss3", {400.0f, 300.0f}} } },

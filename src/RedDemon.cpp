@@ -94,6 +94,17 @@ void RedDemon::Update() {
             }
         }
         SetPosition(newPosition);
+
+        if (m_MaxHealth <= 0) {
+            m_CurrentState = State::DIE;
+            SetState(State::DIE);
+            m_State = EnemyState::Dead;
+            m_DeathTimer = 0.0f;
+            m_HasLanded = false;
+            m_DeathVelocity = 450.0f;
+            SetAnimation("die_flying"); // 開始飛行動畫
+        }
+
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
             m_Snowball->Update();

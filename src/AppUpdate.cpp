@@ -10,6 +10,7 @@
 #include "Enemy.hpp"
 #include "Bullet.hpp"
 #include "Boss.hpp"
+#include "Boss2.hpp"
 #include "SmallBoss.hpp"
 #include "SmallBoss2.hpp"
 
@@ -291,8 +292,10 @@ void App::SpawnEnemiesForLevel(int levelId) {
                     enemy = std::make_shared<RedDemon>(pos);
                 }else if (enemyType == "Frog") {
                     enemy = std::make_shared<Frog>(pos);
-                }else if (enemyType == "Boss" || enemyType == "Boss2" || enemyType == "Boss3") {
+                }else if (enemyType == "Boss") {
                     enemy = std::make_shared<Boss>(pos);
+                }else if (enemyType == "Boss2") {
+                    enemy = std::make_shared<Boss2>(pos);
                 }else if (enemyType == "SmallBoss") {
                     enemy = std::make_shared<SmallBoss>(pos);
                 }else if (enemyType == "SmallBoss2") {
