@@ -67,6 +67,8 @@ add_executable(${PROJECT_NAME}
         src/SmallBoss2.cpp
         include/Boss2.hpp
         src/Boss2.cpp
+        include/Monkey.hpp
+        src/Monkey.cpp
 )
 
 if(MSVC)

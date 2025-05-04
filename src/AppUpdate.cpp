@@ -6,6 +6,7 @@
 #include "GameWorld.hpp"
 #include "RedDemon.hpp"
 #include "Frog.hpp"
+#include "Monkey.hpp"
 #include "FrogBullet.hpp"
 #include "Enemy.hpp"
 #include "Bullet.hpp"
@@ -292,6 +293,8 @@ void App::SpawnEnemiesForLevel(int levelId) {
                     enemy = std::make_shared<RedDemon>(pos);
                 }else if (enemyType == "Frog") {
                     enemy = std::make_shared<Frog>(pos);
+                }else if (enemyType == "Monkey") {
+                    enemy = std::make_shared<Monkey>(pos);
                 }else if (enemyType == "Boss") {
                     enemy = std::make_shared<Boss>(pos);
                 }else if (enemyType == "Boss2") {
