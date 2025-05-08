@@ -51,6 +51,16 @@ void Monkey::Update() {
 
             newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
 
+            // Move the platform drop mechanism after map_collision_judgement
+            if (m_CurrentState == State::STAND && m_IsOnPlatform && abs(position.y - m_GroundLevel) >= 10 && (std::rand() % 100 < 1)) {
+                // 20% chance to fall through platform when standing
+                m_JumpVelocity = -10.0f; // Small negative velocity to start falling
+                SetState(State::FALL);
+                // Skip one collision check to allow falling through
+                position.y -= 2.0f;
+                newPosition = position;
+            }
+
             // Determine if monkey should attack during jump or fall
             if (!m_hasAttacked && (m_CurrentState == State::JUMP || m_CurrentState == State::FALL) &&
                 !m_IsAttacking && (std::rand() % 100 < 40)) {
