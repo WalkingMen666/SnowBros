@@ -9,7 +9,7 @@
 
 class Monkey : public Enemy, public std::enable_shared_from_this<Monkey> {
 public:
-    enum class State { STAND, WALK, JUMP, FALL, DIE };
+    enum class State { STAND, WALK, JUMP, FALL, DIE, ATTACK };
 
     Monkey(const glm::vec2& pos);
     void Update() override;
@@ -43,6 +43,9 @@ private:
     Direction m_TargetDirection;
     bool  m_IsOnPlatform = false;
     State m_CurrentState = State::STAND;
+    bool m_IsAttacking = false;
+    float m_AttackTimer = 0.0f;
+    bool m_hasAttacked = false;
 
     // Death Physics
     float m_DeathVelocity = 0.0f;       // 死亡時的初速度
@@ -56,6 +59,7 @@ private:
     const float ACTION_DELAY = 0.5f;
     const float m_Width = 46.0f;
     const float m_Height = 46.0f;
+    const float m_AttackDuration = 1.0f; // Duration of attack animation
 
     // Private Methods
     void LoadAnimations();
