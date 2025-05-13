@@ -8,7 +8,9 @@
 #include "Frog.hpp"
 #include "Monkey.hpp"
 #include "FrogBullet.hpp"
+#include "FatBullet.hpp"
 #include "Enemy.hpp"
+#include "Fat.hpp"
 #include "Bullet.hpp"
 #include "Boss.hpp"
 #include "Boss2.hpp"
@@ -147,6 +149,48 @@ void App::Update() {
                     }
                 }
                 if (frogBullet->IsMarkedForRemoval()) {
+                    AddRemovingObject(obj);
+                }
+            } else if (auto fatBullet = std::dynamic_pointer_cast<FatBullet>(obj)) {
+                if (m_Nick) {
+                    glm::vec2 bulletPos = fatBullet->GetPosition();
+                    glm::vec2 nickPos = m_Nick->GetPosition();
+                    float bulletLeft = bulletPos.x - fatBullet->GetWidth() / 2;
+                    float bulletRight = bulletPos.x + fatBullet->GetWidth() / 2;
+                    float bulletTop = bulletPos.y + fatBullet->GetHeight() / 2;
+                    float bulletBottom = bulletPos.y - fatBullet->GetHeight() / 2;
+                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
+                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
+                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
+                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
+
+                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
+                        bulletTop > nickBottom && bulletBottom < nickTop) {
+                        fatBullet->OnCollision(m_Nick);
+                    }
+                }
+                if (fatBullet->IsMarkedForRemoval()) {
+                    AddRemovingObject(obj);
+                }
+            } else if (auto fatBullet = std::dynamic_pointer_cast<FatBullet>(obj)) {
+                if (m_Nick) {
+                    glm::vec2 bulletPos = fatBullet->GetPosition();
+                    glm::vec2 nickPos = m_Nick->GetPosition();
+                    float bulletLeft = bulletPos.x - fatBullet->GetWidth() / 2;
+                    float bulletRight = bulletPos.x + fatBullet->GetWidth() / 2;
+                    float bulletTop = bulletPos.y + fatBullet->GetHeight() / 2;
+                    float bulletBottom = bulletPos.y - fatBullet->GetHeight() / 2;
+                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
+                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
+                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
+                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
+
+                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
+                        bulletTop > nickBottom && bulletBottom < nickTop) {
+                        fatBullet->OnCollision(m_Nick);
+                    }
+                }
+                if (fatBullet->IsMarkedForRemoval()) {
                     AddRemovingObject(obj);
                 }
             } else if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
@@ -295,6 +339,8 @@ void App::SpawnEnemiesForLevel(int levelId) {
                     enemy = std::make_shared<Frog>(pos);
                 }else if (enemyType == "Monkey") {
                     enemy = std::make_shared<Monkey>(pos);
+                }else if (enemyType == "Fat") {
+                    enemy = std::make_shared<Fat>(pos);
                 }else if (enemyType == "Boss") {
                     enemy = std::make_shared<Boss>(pos);
                 }else if (enemyType == "Boss2") {

@@ -69,6 +69,10 @@ add_executable(${PROJECT_NAME}
         src/Boss2.cpp
         include/Monkey.hpp
         src/Monkey.cpp
+        include/Fat.hpp
+        src/Fat.cpp
+        include/FatBullet.hpp
+        src/FatBullet.cpp
 )
 
 if(MSVC)

@@ -15,7 +15,7 @@ class App;
 
 class Nick : public UpdatableDrawable, public Character, public AnimatedCharacter {
 public:
-    enum class State { SPAWN, IDLE, WALK, ATTACK, JUMP, DIE, PUSH, KICK };
+    enum class State { SPAWN, IDLE, WALK, ATTACK, JUMP, FALL, DIE, PUSH, KICK };
 
     Nick();
     void Update() override;
@@ -24,8 +24,8 @@ public:
     void SetInvincible(bool invincible);
     void OnCollision(std::shared_ptr<Util::GameObject> other);
     void SetDirection(bool facingRight);
-    void AddHealth() { m_Lives = std::min(9, m_Lives+=1); }
-    void CheatInvincible() { m_IsInvincible = !m_IsInvincible; m_InvincibleTimer = 99999.0f; this->SetVisible(true);}
+    void AddHealth();
+    void CheatInvincible();
 
 
     [[nodiscard]] State GetState() const { return m_State; }
@@ -79,6 +79,8 @@ private:
     std::shared_ptr<Util::Animation> m_AttackRightAnimation;
     std::shared_ptr<Util::Animation> m_JumpLeftAnimation;
     std::shared_ptr<Util::Animation> m_JumpRightAnimation;
+    std::shared_ptr<Util::Animation> m_FallLeftAnimation;
+    std::shared_ptr<Util::Animation> m_FallRightAnimation;
     std::shared_ptr<Util::Animation> m_DieAnimation;
     std::shared_ptr<Util::Animation> m_PushLeftAnimation;
     std::shared_ptr<Util::Animation> m_PushRightAnimation;

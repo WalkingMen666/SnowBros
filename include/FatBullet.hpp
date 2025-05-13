@@ -1,17 +1,18 @@
-#ifndef FROG_BULLET_HPP
-#define FROG_BULLET_HPP
+#ifndef FAT_BULLET_HPP
+#define FAT_BULLET_HPP
 
 #include "UpdatableDrawable.hpp"
 #include "Util/Animation.hpp"
 #include "App.hpp"
 #include "Util/Time.hpp"
 #include "Nick.hpp"
+#include <glm/glm.hpp>
+#include <memory>
 
-class FrogBullet : public UpdatableDrawable {
+class FatBullet : public UpdatableDrawable {
 public:
-    enum class Direction { Up, Down, Left, Right };
+    FatBullet(const glm::vec2& pos, float angleDegrees);
 
-    FrogBullet(const glm::vec2& pos, Direction dir);
     void Update() override;
     void OnCollision(std::shared_ptr<Util::GameObject> other);
 
@@ -26,18 +27,12 @@ private:
     glm::vec2 m_Velocity;
     float m_LifeTime = 0.0f;
     bool m_MarkedForRemoval = false;
-    bool m_IsExploding = false;
-    float m_ExplosionTimer = 0.0f;
-    const float m_ExplosionDuration = 0.5f; // 爆炸動畫持續時間
-
-    // Drawable
-    std::shared_ptr<Util::Animation> m_ExplosionAnimation;
 
     // Constants
     static constexpr float MAX_LIFE = 2.0f;
-    static constexpr float m_BulletWidth = 27.0f;
-    static constexpr float m_BulletHeight = 27.0f;
+    static constexpr float m_BulletWidth = 17.0f;
+    static constexpr float m_BulletHeight = 17.0f;
     const std::string BASE_PATH = RESOURCE_DIR "/Image/Character/Enemies/";
 };
 
-#endif // FROG_BULLET_HPP
+#endif // FAT_BULLET_HPP

@@ -20,7 +20,9 @@ void Nick::Update() {
     m_IsOnPlatform = false;
     const bool isMoving = Util::Input::IsKeyPressed(Util::Keycode::A) || Util::Input::IsKeyPressed(Util::Keycode::D);
 
+    // 处理非死亡状态
     if (m_State != State::DIE) {
+        // 处理无敌状态
         if (m_IsInvincible) {
             m_InvincibleTimer -= deltaTime;
             m_BlinkTimer += deltaTime;
@@ -33,13 +35,17 @@ void Nick::Update() {
             }
         }
 
+        // 处理移动输入
         if (Util::Input::IsKeyPressed(Util::Keycode::A)) moveDistance = -m_Speed * deltaTime;
         else if (Util::Input::IsKeyPressed(Util::Keycode::D)) moveDistance = m_Speed * deltaTime;
 
+        // 更新基于物理的位置
         position = GameWorld::map_collision_judgement(characterWidth, characterHeight, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
 
+        // 更新方向
         if (moveDistance != 0.0f) SetDirection(moveDistance > 0);
 
+        // 处理攻击输入
         if (Util::Input::IsKeyDown(Util::Keycode::MOUSE_LB)) {
             bool nearSnowball = false;
             for (const auto& obj : GameWorld::GetObjects()) {
@@ -58,6 +64,7 @@ void Nick::Update() {
             }
         }
 
+        // 检查是否推动雪球
         bool isPushing = false;
         for (const auto& obj : GameWorld::GetObjects()) {
             if (const auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
@@ -68,15 +75,27 @@ void Nick::Update() {
             }
         }
 
+        // 处理跳跃输入和状态转换
         if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) {
             SetState(State::JUMP);
         } else if (isPushing) {
             SetState(State::PUSH);
         } else {
-            if (isMoving && m_State != State::WALK && m_State != State::JUMP) SetState(State::WALK);
-            else if (!isMoving && m_State != State::IDLE && m_State != State::JUMP && m_State != State::SPAWN) SetState(State::IDLE);
+            // 检查是否下落
+            if (m_JumpVelocity < 0 && m_State != State::JUMP) {
+                SetState(State::FALL);
+            } 
+            // 更新移动/静止状态
+            else if (isMoving && m_State != State::WALK && m_State != State::JUMP && m_State != State::FALL) {
+                SetState(State::WALK);
+            } 
+            else if (!isMoving && m_State != State::IDLE && m_State != State::JUMP && 
+                    m_State != State::SPAWN && m_State != State::FALL) {
+                SetState(State::IDLE);
+            }
         }
     } else {
+        // 处理死亡状态物理效果
         if (m_DeathVelocity <= 0.0f) {
             m_DeathVelocity = 0.0f;
             m_Gravity = 0.0f;
@@ -84,6 +103,7 @@ void Nick::Update() {
         position = GameWorld::map_collision_judgement(characterWidth, characterHeight, position, m_DeathVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
     }
 
+    // 处理特定状态逻辑
     switch (m_State) {
         case State::SPAWN:
             if (IsAnimationFinished()) {
@@ -102,10 +122,16 @@ void Nick::Update() {
             break;
         case State::ATTACK:
             if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) SetState(State::JUMP);
-            else if (std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->GetState() == Util::Animation::State::ENDED) SetState(isMoving ? State::WALK : State::IDLE);
+            else if (std::dynamic_pointer_cast<Util::Animation>(m_Drawable)->GetState() == Util::Animation::State::ENDED) 
+                SetState(isMoving ? State::WALK : State::IDLE);
             break;
         case State::JUMP:
             if (m_IsOnPlatform && m_JumpVelocity == 0.0f) SetState(isMoving ? State::WALK : State::IDLE);
+            break;
+        case State::FALL:
+            if (m_IsOnPlatform && m_JumpVelocity == 0.0f) {
+                SetState(isMoving ? State::WALK : State::IDLE);
+            }
             break;
         case State::DIE:
             m_DeathVelocity += m_Gravity * deltaTime;
@@ -146,7 +172,7 @@ void Nick::SetState(State state) {
     } else if (state == State::DIE) {
         m_DeathVelocity = m_DeathInitialVelocity;
         m_Gravity = -50.0f;
-    }else if (state == State::SPAWN) {
+    } else if (state == State::SPAWN) {
         SetInvincible(true);
     }
     SwitchAnimation(state, state == State::IDLE || state == State::WALK || state == State::PUSH);
@@ -167,7 +193,7 @@ void Nick::SetDirection(bool facingRight) {
     if (m_FacingRight == facingRight) return;
     m_FacingRight = facingRight;
 
-    if (m_State == State::JUMP || m_State == State::PUSH || m_State == State::KICK) {
+    if (m_State == State::JUMP || m_State == State::FALL || m_State == State::PUSH || m_State == State::KICK) {
         const auto currentAnimation = std::dynamic_pointer_cast<Util::Animation>(m_Drawable);
         const int currentFrame = currentAnimation->GetCurrentFrameIndex();
         SwitchAnimation(m_State, m_State == State::PUSH);
@@ -185,6 +211,7 @@ void Nick::SwitchAnimation(State state, bool looping) {
         case State::WALK: animation = m_FacingRight ? m_WalkRightAnimation : m_WalkLeftAnimation; break;
         case State::ATTACK: animation = m_FacingRight ? m_AttackRightAnimation : m_AttackLeftAnimation; break;
         case State::JUMP: animation = m_FacingRight ? m_JumpRightAnimation : m_JumpLeftAnimation; break;
+        case State::FALL: animation = m_FacingRight ? m_FallRightAnimation : m_FallLeftAnimation; break;
         case State::DIE: animation = m_DieAnimation; break;
         case State::PUSH: animation = m_FacingRight ? m_PushRightAnimation : m_PushLeftAnimation; break;
         case State::KICK: animation = m_FacingRight ? m_KickRightAnimation : m_KickLeftAnimation; break;
@@ -206,10 +233,21 @@ void Nick::Die() {
 
 void Nick::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (const auto enemy = std::dynamic_pointer_cast<Enemy>(other)) {
-        if (enemy->GetState() == EnemyState::Normal && glm::distance(GetPosition(), enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
+        if (enemy->GetState() == EnemyState::Normal && 
+            glm::distance(GetPosition(), enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
             Die();
         }
     }
+}
+
+void Nick::AddHealth() {
+    m_Lives = std::min(9, m_Lives + 1);
+}
+
+void Nick::CheatInvincible() {
+    m_IsInvincible = !m_IsInvincible;
+    m_InvincibleTimer = 99999.0f;
+    SetVisible(true);
 }
 
 void Nick::LoadAnimations() {
@@ -223,6 +261,8 @@ void Nick::LoadAnimations() {
     m_AttackRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_att_right_1.png", basePath + "nick_att_right_2.png"}, false, 200, false, 200);
     m_JumpLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_left_1.png", basePath + "nick_jump_left_2.png", basePath + "nick_jump_left_3.png", basePath + "nick_jump_left_4.png", basePath + "nick_jump_left_1.png"}, false, 250, false, 0);
     m_JumpRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_right_1.png", basePath + "nick_jump_right_2.png", basePath + "nick_jump_right_3.png", basePath + "nick_jump_right_4.png", basePath + "nick_jump_right_1.png"}, false, 250, false, 0);
+    m_FallLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_left_1.png"}, false, 250, false, 0);
+    m_FallRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_jump_right_1.png"}, false, 250, false, 0);
     m_DieAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_die_1.png", basePath + "nick_die_2.png", basePath + "nick_die_3.png", basePath + "nick_die_4.png"}, false, 400, false, 0);
     m_PushLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_left_1.png", basePath + "nick_push_left_2.png", basePath + "nick_push_left_3.png"}, false, 200, true, 0);
     m_PushRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_right_1.png", basePath + "nick_push_right_2.png", basePath + "nick_push_right_3.png"}, false, 200, true, 0);
