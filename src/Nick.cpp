@@ -1,6 +1,7 @@
 #include "Nick.hpp"
 #include "App.hpp"
 #include "Bullet.hpp"
+#include "NickBullet.hpp"
 #include "Snowball.hpp"
 
 Nick::Nick()
@@ -60,7 +61,7 @@ void Nick::Update() {
             }
             if (!nearSnowball) {
                 SetState(State::ATTACK);
-                App::GetInstance().AddPendingObject(std::make_shared<Bullet>(position, m_FacingRight ? Direction::Right : Direction::Left));
+                App::GetInstance().AddPendingObject(std::make_shared<NickBullet>(position, m_FacingRight ? NickBullet::Direction::Right : NickBullet::Direction::Left));
             }
         }
 

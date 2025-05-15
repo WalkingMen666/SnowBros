@@ -3,27 +3,12 @@
 #include "GameWorld.hpp"
 #include "Util/Logger.hpp"
 
-const std::string Bullet::BASE_PATH = RESOURCE_DIR "/Image/Character/Tom&Nick/";
+const std::string Bullet::BASE_PATH = RESOURCE_DIR "/Image/Character/Enemies/";
 
-Bullet::Bullet(const glm::vec2& pos, Direction dir) : m_LifeTime(0.0f) {
+Bullet::Bullet(const glm::vec2& pos) : m_LifeTime(0.0f) {
     m_Transform.translation = pos;
-    m_Velocity = (dir == Direction::Right) ? glm::vec2(800.0f, 0) : glm::vec2(-800.0f, 0);
-    m_Drawable = std::make_shared<Util::Image>((dir == Direction::Right) ? BASE_PATH + "blue_bullet_right.png" : BASE_PATH + "blue_bullet_left.png");
+    SetVisible(true);
+    SetZIndex(5);
 }
 
-void Bullet::Update() {
-    const float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
-    m_LifeTime += deltaTime;
-    m_Velocity.x *= 0.95f;
-    if (m_LifeTime > 0.5f) m_Velocity.y -= 150.0f * deltaTime;
-    m_Transform.translation += m_Velocity * deltaTime;
-
-    if (m_LifeTime > MAX_LIFE || GetPosition().y < -380) m_MarkedForRemoval = true;
-}
-
-void Bullet::OnCollision(std::shared_ptr<Util::GameObject> other) {
-    if (const auto enemy = std::dynamic_pointer_cast<Enemy>(other)) {
-        enemy->OnHit();
-        m_MarkedForRemoval = true;
-    }
-}
+// 移除 Update 和 OnCollision 函數的實作，因為它們是純虛擬函數

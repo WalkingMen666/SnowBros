@@ -105,6 +105,24 @@ void App::Update() {
         for (auto& obj : objects) {
             obj->Update();
             if (auto bullet = std::dynamic_pointer_cast<Bullet>(obj)) {
+                if (m_Nick) {
+                    glm::vec2 bulletPos = bullet->GetPosition();
+                    glm::vec2 nickPos = m_Nick->GetPosition();
+                    float bulletLeft = bulletPos.x - bullet->GetWidth() / 2;
+                    float bulletRight = bulletPos.x + bullet->GetWidth() / 2;
+                    float bulletTop = bulletPos.y + bullet->GetHeight() / 2;
+                    float bulletBottom = bulletPos.y - bullet->GetHeight() / 2;
+                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
+                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
+                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
+                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
+
+                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
+                        bulletTop > nickBottom && bulletBottom < nickTop) {
+                        bullet->OnCollision(m_Nick);
+                    }
+                }
+
                 for (auto& other : objects) {
                     if (bullet != other) {
                         glm::vec2 bulletPos = bullet->GetPosition();
@@ -127,79 +145,11 @@ void App::Update() {
                         }
                     }
                 }
+
                 if (bullet->IsMarkedForRemoval()) {
                     AddRemovingObject(obj);
                 }
-            } else if (auto frogBullet = std::dynamic_pointer_cast<FrogBullet>(obj)) {
-                if (m_Nick) {
-                    glm::vec2 bulletPos = frogBullet->GetPosition();
-                    glm::vec2 nickPos = m_Nick->GetPosition();
-                    float bulletLeft = bulletPos.x - frogBullet->GetWidth() / 2;
-                    float bulletRight = bulletPos.x + frogBullet->GetWidth() / 2;
-                    float bulletTop = bulletPos.y + frogBullet->GetHeight() / 2;
-                    float bulletBottom = bulletPos.y - frogBullet->GetHeight() / 2;
-                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
-                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
-                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
-                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
-
-                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
-                        bulletTop > nickBottom && bulletBottom < nickTop) {
-                        frogBullet->OnCollision(m_Nick);
-                    }
-                }
-                if (frogBullet->IsMarkedForRemoval()) {
-                    AddRemovingObject(obj);
-                }
-            } else if (auto fatBullet = std::dynamic_pointer_cast<FatBullet>(obj)) {
-                if (m_Nick) {
-                    glm::vec2 bulletPos = fatBullet->GetPosition();
-                    glm::vec2 nickPos = m_Nick->GetPosition();
-                    float bulletLeft = bulletPos.x - fatBullet->GetWidth() / 2;
-                    float bulletRight = bulletPos.x + fatBullet->GetWidth() / 2;
-                    float bulletTop = bulletPos.y + fatBullet->GetHeight() / 2;
-                    float bulletBottom = bulletPos.y - fatBullet->GetHeight() / 2;
-                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
-                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
-                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
-                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
-
-                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
-                        bulletTop > nickBottom && bulletBottom < nickTop) {
-                        fatBullet->OnCollision(m_Nick);
-                    }
-                }
-                if (fatBullet->IsMarkedForRemoval()) {
-                    AddRemovingObject(obj);
-                }
-            } else if (auto fatBullet = std::dynamic_pointer_cast<FatBullet>(obj)) {
-                if (m_Nick) {
-                    glm::vec2 bulletPos = fatBullet->GetPosition();
-                    glm::vec2 nickPos = m_Nick->GetPosition();
-                    float bulletLeft = bulletPos.x - fatBullet->GetWidth() / 2;
-                    float bulletRight = bulletPos.x + fatBullet->GetWidth() / 2;
-                    float bulletTop = bulletPos.y + fatBullet->GetHeight() / 2;
-                    float bulletBottom = bulletPos.y - fatBullet->GetHeight() / 2;
-                    float nickLeft = nickPos.x - m_Nick->GetCharacterWidth() / 2;
-                    float nickRight = nickPos.x + m_Nick->GetCharacterWidth() / 2;
-                    float nickTop = nickPos.y + m_Nick->GetCharacterHeight() / 2;
-                    float nickBottom = nickPos.y - m_Nick->GetCharacterHeight() / 2;
-
-                    if (bulletRight > nickLeft && bulletLeft < nickRight &&
-                        bulletTop > nickBottom && bulletBottom < nickTop) {
-                        fatBullet->OnCollision(m_Nick);
-                    }
-                }
-                if (fatBullet->IsMarkedForRemoval()) {
-                    AddRemovingObject(obj);
-                }
-            } 
-            // else if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
-            //     if (enemy->GetState() == EnemyState::Dead &&
-            //         std::dynamic_pointer_cast<Util::Animation>(enemy->GetDrawable())->GetState() == Util::Animation::State::ENDED) {
-            //         AddRemovingObject(obj);
-            //     }
-            // }
+            }
         }
 
         if (m_Nick) {

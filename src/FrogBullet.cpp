@@ -2,7 +2,8 @@
 #include "GameWorld.hpp"
 #include "Util/Logger.hpp"
 
-FrogBullet::FrogBullet(const glm::vec2& pos, Direction dir){
+FrogBullet::FrogBullet(const glm::vec2& pos, Direction dir)
+    : Bullet(pos), m_Direction(dir) {
     m_Transform.translation = pos;
     SetVisible(true); // 明確設置可見性
     SetZIndex(5); // 設置合理的 Z 軸，確保不被其他物件覆蓋

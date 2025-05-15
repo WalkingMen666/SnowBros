@@ -51,6 +51,7 @@ set(SRC_FILES
     ${SRC_DIR}/SmallBoss.cpp
     ${SRC_DIR}/SmallBoss2.cpp
     ${SRC_DIR}/Snowball.cpp
+    ${SRC_DIR}/NickBullet.cpp
 )
 
 # 收集所有頭文件

@@ -2,8 +2,8 @@
 #include "Util/Logger.hpp"
 #include <glm/gtc/constants.hpp>
 
-FatBullet::FatBullet(const glm::vec2& pos, float angleDegrees) {
-    m_Transform.translation = pos;
+FatBullet::FatBullet(const glm::vec2& pos, float angleDegrees) 
+    : Bullet(pos), m_Angle(angleDegrees) {
     SetVisible(true);
     SetZIndex(5);
 
