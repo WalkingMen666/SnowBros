@@ -193,12 +193,13 @@ void App::Update() {
                 if (fatBullet->IsMarkedForRemoval()) {
                     AddRemovingObject(obj);
                 }
-            } else if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
-                if (enemy->GetState() == EnemyState::Dead &&
-                    std::dynamic_pointer_cast<Util::Animation>(enemy->GetDrawable())->GetState() == Util::Animation::State::ENDED) {
-                    AddRemovingObject(obj);
-                }
-            }
+            } 
+            // else if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+            //     if (enemy->GetState() == EnemyState::Dead &&
+            //         std::dynamic_pointer_cast<Util::Animation>(enemy->GetDrawable())->GetState() == Util::Animation::State::ENDED) {
+            //         AddRemovingObject(obj);
+            //     }
+            // }
         }
 
         if (m_Nick) {

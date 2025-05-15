@@ -21,6 +21,27 @@ void Fat::Update() {
     glm::vec2 newPosition = position;
 
     if (m_State == EnemyState::Normal) {
+        // 檢查是否所有其他敵人都已死亡
+        bool allOtherEnemiesDead = true;
+        for (const auto& obj : GameWorld::GetObjects()) {
+            if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                // 跳過自己
+                if (enemy.get() == this) continue;
+                
+                // 如果還有其他敵人活著，則不死亡
+                if (enemy->GetState() != EnemyState::Dead) {
+                    allOtherEnemiesDead = false;
+                    break;
+                }
+            }
+        }
+
+        // 如果所有其他敵人都已死亡，則呼叫 Die()
+        if (allOtherEnemiesDead) {
+            Die();
+            return;
+        }
+
         m_IsOnPlatform = false;
         m_ActionTimer += deltaTime;
         m_Direction = m_TargetDirection;
@@ -50,7 +71,6 @@ void Fat::Update() {
                     m_hasAttacked = true;
                     Attack();
                 }
-                m_IsActing = false;
             }
             m_ActionTimer = 0.0f;
         }
@@ -66,24 +86,29 @@ void Fat::Update() {
             SetPosition(newPosition);
         }
     } else if (m_State == EnemyState::Dead) {
-        m_DeathTimer += deltaTime;
-        if (!m_HasLanded) {
-            newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
-            if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= m_GroundLevel)) {
-                if (newPosition.y < m_GroundLevel) newPosition.y = m_GroundLevel;
-                m_DeathVelocity = 0.0f;
-                m_HasLanded = true;
-                m_DeathTimer = 0.0f; // 重置計時器用於落地等待
-                SetAnimation("die_landing"); // 切換到落地動畫
-            }
-        } else {
-            newPosition = GameWorld::map_collision_judgement(46, 35, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
-            if (m_DeathTimer >= m_LandingDuration) {
-                App::GetInstance().AddRemovingObject(shared_from_this());
-            }
+        // 更新總時間計時器
+        m_TotalBlinkTimer += deltaTime;
+        
+        // 計算當前閃爍間隔（隨著時間推移逐漸變小）
+        m_BlinkInterval = std::max(m_BlinkInterval*0.95f, m_MinBlinkInterval);
+        
+        // 更新間隔計時器
+        m_IntervalBlinkTimer += deltaTime;
+        
+        // 根據間隔計時器切換可見性
+        if (m_IntervalBlinkTimer >= m_BlinkInterval) {
+            m_IsVisible = !m_IsVisible;
+            SetVisible(m_IsVisible);
+            m_IntervalBlinkTimer = 0.0f;
         }
-        SetPosition(newPosition);
+        
+        // 如果閃爍時間結束，則移除物件
+        if (m_TotalBlinkTimer >= m_BlinkDuration) {
+            App::GetInstance().AddRemovingObject(shared_from_this());
+            return;
+        }
     }
+    
     if (auto nick = App::GetInstance().GetNick()) {
         if (glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetCharacterWidth()) / 2) {
             OnCollision(nick);
@@ -92,8 +117,6 @@ void Fat::Update() {
 }
 
 void Fat::Attack() {
-    LOG_INFO("Fat attacks");
-
     // Define the angles for the bullets (210°, 240°, 300°, 330°)
     std::vector<float> angles = {210.0f, 240.0f, 300.0f, 330.0f};
 
@@ -108,22 +131,17 @@ void Fat::Attack() {
 }
 
 void Fat::OnHit() {
-    LOG_INFO("Fat can't be hit");
+    // Fat can't be hit
 }
 
 void Fat::Die() {
-    if (m_State == EnemyState::Snowball) {
-        m_Snowball->SetVisible(false);
-        App::GetInstance().AddRemovingObject(m_Snowball);
-        App::GetInstance().AddRemovingObject(shared_from_this());
-    } else {
-        SetState(State::DIE);
-        m_State = EnemyState::Dead;
-        m_DeathTimer = 0.0f;
-        m_HasLanded = false;
-        m_DeathVelocity = 450.0f;
-        SetAnimation("die_flying"); // 開始飛行動畫
-    }
+    m_State = EnemyState::Dead;
+    SetState(State::DIE);
+    m_TotalBlinkTimer = 0.0f;
+    m_IntervalBlinkTimer = 0.0f;
+    m_BlinkInterval = 0.2f;
+    m_IsVisible = true;
+    SetVisible(true);
 }
 
 void Fat::SetState(State state) {
@@ -144,7 +162,6 @@ void Fat::SetState(State state) {
             SetAnimation((m_Direction == Direction::Right) ? "on_edge_right" : "on_edge_left");
             break;
         case State::DIE:
-            // 這裡不直接設置動畫，因為 Die() 會處理
             break;
     }
 }

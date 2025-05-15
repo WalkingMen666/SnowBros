@@ -32,26 +32,24 @@ protected:
     std::shared_ptr<Snowball> m_Snowball;
 
     // Constants
-    const float m_JumpInitialVelocity = 450.0f;
     const float m_Gravity = -800.0f;
 
 private:
     // State and Action
     float m_ActionTimer = 0.0f;
-    bool  m_IsActing = false;
     bool  m_IsChangingDirection = false;
     Direction m_TargetDirection;
     bool  m_IsOnPlatform = false;
     State m_CurrentState = State::STAND;
     bool  m_hasAttacked = false;
 
-    // Death Physics
-    float m_DeathVelocity = 0.0f;       // 死亡時的初速度
-    float m_DeathTimer = 0.0f;          // 死亡計時器
-    bool  m_HasLanded = false;          // 是否已落地
-    const float m_DeathDuration = 1.0f; // 死亡動畫持續時間
-    const float m_DeathHeight = 100.0f; // 飛起高度
-    const float m_LandingDuration = 0.4f; // 落地後等待時間
+    // Death Blink Animation
+    float m_TotalBlinkTimer = 0.0f;     // 總閃爍時間計時器
+    float m_IntervalBlinkTimer = 0.0f;  // 閃爍間隔計時器
+    float m_BlinkInterval = 0.2f;       // 初始閃爍間隔
+    const float m_BlinkDuration = 1.5f; // 閃爍總持續時間
+    bool  m_IsVisible = true;           // 當前是否可見
+    const float m_MinBlinkInterval = 0.05f; // 最小閃爍間隔
 
     // Constants
     const float ACTION_DELAY = 1.5f;
@@ -62,7 +60,6 @@ private:
     void LoadAnimations();
     void SetState(State state);
     void Attack();
-    std::pair<float, float> GetSizeForMeltStage() const;
 };
 
 #endif
