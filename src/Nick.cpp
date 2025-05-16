@@ -3,6 +3,7 @@
 #include "Bullet.hpp"
 #include "NickBullet.hpp"
 #include "Snowball.hpp"
+#include <cmath>
 
 Nick::Nick()
     : Character(RESOURCE_DIR "/Image/Character/Tom&Nick/spawn1.png")
@@ -234,9 +235,11 @@ void Nick::Die() {
 
 void Nick::OnCollision(std::shared_ptr<Util::GameObject> other) {
     if (const auto enemy = std::dynamic_pointer_cast<Enemy>(other)) {
-        if (enemy->GetState() == EnemyState::Normal && 
-            glm::distance(GetPosition(), enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
-            Die();
+        if (!enemy->IsBoss() || App::GetInstance().GetCurrentLevel() == 10) {
+            if (enemy->GetState() == EnemyState::Normal &&
+                glm::distance(GetPosition(), enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
+                Die();
+            }
         }
     }
 }

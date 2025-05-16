@@ -9,13 +9,14 @@ Boss2::Boss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/b
     LoadAnimations();
     m_Drawable = m_Animations["stand"];
     m_CurrentState = BossState::Stand;
-    m_MaxHealth= 10;
+    m_MaxHealth= 200;
+
 }
 
 void Boss2::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     glm::vec2 position = GetPosition();
-
+    LOG_INFO( "Boss2 Position: ({}, {})", position.x, position.y);
     // Handle Dead state
     if (m_CurrentState == BossState::Dead) {
         m_DieTimer += deltaTime;
@@ -122,6 +123,14 @@ void Boss2::Update() {
         position.y += m_JumpVelocity * deltaTime;
         position = GameWorld::map_collision_judgement(m_BossWidth, m_CurrentHeight, position, m_JumpVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
         SetPosition(position);
+    }
+    float const BossTop = position.y + m_CurrentHeight / 2;
+    float const BossBottom = position.y - m_CurrentHeight / 2;
+    if (auto nick = App::GetInstance().GetNick()) {
+        if ( glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetCharacterWidth() ) / 2 &&
+             nick->GetPosition().y < BossTop && nick->GetPosition().y > BossBottom) {
+            OnCollision(nick);
+        }
     }
 }
 

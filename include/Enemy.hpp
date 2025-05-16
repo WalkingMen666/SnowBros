@@ -28,7 +28,8 @@ public:
     virtual void Die() { m_State = EnemyState::Dead; }
     void SetAnimation(const std::string& key);
     void SetMeltStage(int stage);
-    void GetAttacked(){m_MaxHealth--;};
+    void GetAttacked(){m_MaxHealth--;}
+    void GetSnowballCollision(){m_MaxHealth-=15;}
 
     [[nodiscard]] EnemyState GetState() const { return m_State; }
     [[nodiscard]] std::shared_ptr<Core::Drawable> GetDrawable() const override { return m_Drawable; }

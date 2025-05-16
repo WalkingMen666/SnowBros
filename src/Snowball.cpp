@@ -129,10 +129,7 @@ void Snowball::CheckCollisionWithEnemies() {
                 if (source == enemy) continue; // 跳過來源敵人
             }
 
-            // if (enemy->IsBoss()) {
-            //     App::GetInstance().AddRemovingObject(shared_from_this());
-            //     enemy->GetAttacked(); //
-            // };
+
 
             glm::vec2 enemyPos = enemy->GetPosition();
             float enemyLeft = enemyPos.x - enemy->GetWidth() / 2;
@@ -142,8 +139,13 @@ void Snowball::CheckCollisionWithEnemies() {
 
             if (snowballRight > enemyLeft && snowballLeft < enemyRight &&
                 snowballTop > enemyBottom && snowballBottom < enemyTop) {
-                if (enemy->IsBoss()) { App::GetInstance().AddRemovingObject(shared_from_this()); }
-                enemy->GetAttacked(); //
+                // if (enemy->IsBoss()) { App::GetInstance().AddRemovingObject(shared_from_this()); }
+                if (enemy->IsBoss()) {
+                    m_SnowballState = SnowballState::Killed;
+                    // App::GetInstance().AddRemovingObject(shared_from_this());
+                    enemy->GetSnowballCollision(); //
+                }
+                enemy->GetAttacked();
             }
         }
     }

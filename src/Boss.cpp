@@ -5,7 +5,7 @@
 Boss::Boss(const glm::vec2& pos)
     : Enemy(RESOURCE_DIR "/Image/Character/Boss/boss1_stand.png", pos) {
     m_MaxHits = 999;
-    m_MaxHealth = 2800;
+    m_MaxHealth = 200;
     std::srand(static_cast<unsigned>(std::time(nullptr)));
     m_RandomJumpLimit = 3 + std::rand() % 8;
     LoadAnimations();
