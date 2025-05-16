@@ -7,6 +7,8 @@
 #include "Util/Color.hpp"
 #include "BackgroundImage.hpp"
 #include "Util/Logger.hpp"
+#include "Util/BGM.hpp"
+#include "Util/SFX.hpp"
 #include <memory>
 #include <vector>
 #include "UpdatableDrawable.hpp"
@@ -74,6 +76,14 @@ private:
     std::shared_ptr<Nick> m_Nick;
     std::shared_ptr<PhaseResourceManger> m_PRM;
     std::shared_ptr<BackgroundImage> m_Overlay;
+
+    // Background Music
+    std::shared_ptr<Util::BGM> m_IntroBGM;
+    std::shared_ptr<Util::BGM> m_Stage1BGM;
+    std::shared_ptr<Util::BGM> m_Stage2BGM;
+    std::shared_ptr<Util::BGM> m_BossBGM;
+    std::shared_ptr<Util::SFX> m_GameOverBGM;
+    void PlayBGMForLevel(int levelId);
 
     // Object Management
     std::vector<std::shared_ptr<UpdatableDrawable>> m_PendingObjects;

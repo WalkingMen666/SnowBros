@@ -8,6 +8,8 @@ Snowball::Snowball(const glm::vec2& initialPosition, std::shared_ptr<Enemy> sour
     LoadAnimations();
     m_Drawable = m_Animations["snowball_melt_3"];
     m_Transform.translation = initialPosition;
+    m_KillEnemySFX = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/snowball_kill_enemy.mp3");
+    m_KillEnemySFX->SetVolume(30);
     SetVisible(true);
 }
 
@@ -129,8 +131,6 @@ void Snowball::CheckCollisionWithEnemies() {
                 if (source == enemy) continue; // 跳過來源敵人
             }
 
-
-
             glm::vec2 enemyPos = enemy->GetPosition();
             float enemyLeft = enemyPos.x - enemy->GetWidth() / 2;
             float enemyRight = enemyPos.x + enemy->GetWidth() / 2;
@@ -139,13 +139,12 @@ void Snowball::CheckCollisionWithEnemies() {
 
             if (snowballRight > enemyLeft && snowballLeft < enemyRight &&
                 snowballTop > enemyBottom && snowballBottom < enemyTop) {
-                // if (enemy->IsBoss()) { App::GetInstance().AddRemovingObject(shared_from_this()); }
                 if (enemy->IsBoss()) {
                     m_SnowballState = SnowballState::Killed;
-                    // App::GetInstance().AddRemovingObject(shared_from_this());
                     enemy->GetSnowballCollision(); //
                 }
                 enemy->GetAttacked();
+                m_KillEnemySFX->Play();
             }
         }
     }

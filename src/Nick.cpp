@@ -10,9 +10,11 @@ Nick::Nick()
     , AnimatedCharacter({})
 {
     LoadAnimations();
+    LoadSounds();
     SetPosition({0.0f, -325.0f});
     SwitchAnimation(State::SPAWN, false);
     SetInvincible(true);
+    m_SpawnSound->Play();
 }
 
 void Nick::Update() {
@@ -55,6 +57,7 @@ void Nick::Update() {
                     if (enemy->GetState() == EnemyState::Snowball && glm::distance(position, enemy->GetPosition()) < (characterWidth + enemy->GetCharacterWidth()) / 2) {
                         SetState(State::KICK);
                         enemy->GetSnowball()->OnKick(m_FacingRight ? Direction::Right : Direction::Left);
+                        m_KickSound->Play();
                         nearSnowball = true;
                         break;
                     }
@@ -62,6 +65,7 @@ void Nick::Update() {
             }
             if (!nearSnowball) {
                 SetState(State::ATTACK);
+                m_AttackSound->Play();
                 App::GetInstance().AddPendingObject(std::make_shared<NickBullet>(position, m_FacingRight ? NickBullet::Direction::Right : NickBullet::Direction::Left));
             }
         }
@@ -79,6 +83,7 @@ void Nick::Update() {
 
         // 处理跳跃输入和状态转换
         if (Util::Input::IsKeyPressed(Util::Keycode::SPACE) && m_IsOnPlatform) {
+            m_JumpSound->Play();
             SetState(State::JUMP);
         } else if (isPushing) {
             SetState(State::PUSH);
@@ -146,6 +151,7 @@ void Nick::Update() {
                     m_DeathPauseTimer = 0.0f;
                     if (m_Lives > 0) {
                         SetState(State::SPAWN);
+                        // m_SpawnSound->Play();
                         position = {0.0f, -325.0f};
                     } else {
                         App::GetInstance().SetState(App::State::GAMEOVER);
@@ -176,6 +182,7 @@ void Nick::SetState(State state) {
         m_Gravity = -50.0f;
     } else if (state == State::SPAWN) {
         SetInvincible(true);
+        m_SpawnSound->Play();
     }
     SwitchAnimation(state, state == State::IDLE || state == State::WALK || state == State::PUSH);
 }
@@ -228,6 +235,7 @@ void Nick::SwitchAnimation(State state, bool looping) {
 
 void Nick::Die() {
     if (m_IsInvincible || m_State == State::DIE) return;
+    m_DieSound->Play();
     m_Lives--;
     SetState(State::DIE);
     SetInvincible(false);
@@ -272,4 +280,17 @@ void Nick::LoadAnimations() {
     m_PushRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_push_right_1.png", basePath + "nick_push_right_2.png", basePath + "nick_push_right_3.png"}, false, 200, true, 0);
     m_KickLeftAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_kick_left.png"}, false, 400, false, 0);
     m_KickRightAnimation = std::make_shared<Util::Animation>(std::vector<std::string>{basePath + "nick_kick_right.png"}, false, 400, false, 0);
+}
+
+void Nick::LoadSounds() {
+    m_SpawnSound = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/nick_spawn.mp3");
+    m_JumpSound = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/nick_jump.mp3");
+    m_DieSound = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/nick_die.mp3");
+    m_KickSound = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/nick_kick.mp3");
+    m_AttackSound = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/nick_attack.mp3");
+    m_SpawnSound->SetVolume(30);
+    m_JumpSound->SetVolume(30);
+    m_DieSound->SetVolume(30);
+    m_KickSound->SetVolume(30);
+    m_AttackSound->SetVolume(30);
 }

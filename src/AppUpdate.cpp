@@ -208,7 +208,6 @@ void App::Update() {
     m_Root.Update();
 }
 
-// 以下保持不變
 void App::SetState(State state) {
     if (m_CurrentState == state) return;
     m_CurrentState = state;
@@ -220,9 +219,15 @@ void App::SetState(State state) {
         }
         GameWorld::GetObjects().clear();
 
+        // Stop all BGM
+        m_IntroBGM->FadeOut(500);
+        m_Stage1BGM->FadeOut(500);
+        m_Stage2BGM->FadeOut(500);
+        m_BossBGM->FadeOut(500);
+        m_GameOverBGM->Play();
+
         std::string initialImage = RESOURCE_DIR "/Image/Background/black/black50.png";
         m_Overlay->SetImage(initialImage);
-        // m_Overlay->m_Transform.scale = {720.0f, 720.0f};
         m_Overlay->SetZIndex(10);
         m_Overlay->SetVisible(true);
     }
@@ -270,12 +275,14 @@ void App::InitializeLevel(int levelId) {
         }
         GameWorld::GetObjects().clear();
         SpawnEnemiesForLevel(levelId);
+        PlayBGMForLevel(levelId);
     } else if (levelId >= 2 && levelId <= 30) {
         for (auto obj : GameWorld::GetObjects()) {
             m_Root.RemoveChild(obj);
         }
         GameWorld::GetObjects().clear();
         SpawnEnemiesForLevel(levelId);
+        PlayBGMForLevel(levelId);
     }
 }
 
@@ -308,6 +315,36 @@ void App::SpawnEnemiesForLevel(int levelId) {
             }
             break;
         }
+    }
+}
+
+void App::PlayBGMForLevel(int levelId) {
+    static int lastBGMType = -1;  // -1: none, 0: intro, 1: stage1, 2: stage2, 3: boss
+    int currentBGMType = -1;
+
+    // Determine current BGM type
+    if (levelId == 10 || levelId == 20) {
+        currentBGMType = 3;  // Boss BGM
+    } else if (levelId >= 1 && levelId <= 9) {
+        currentBGMType = 1;  // Stage 1 BGM
+    } else if (levelId >= 11 && levelId <= 19) {
+        currentBGMType = 2;  // Stage 2 BGM
+    }
+
+    // Only play new BGM if the type has changed
+    if (currentBGMType != lastBGMType) {
+        switch (currentBGMType) {
+            case 1:  // Stage 1
+                m_Stage1BGM->Play(-1);
+                break;
+            case 2:  // Stage 2
+                m_Stage2BGM->Play(-1);
+                break;
+            case 3:  // Boss
+                m_BossBGM->Play(-1);
+                break;
+        }
+        lastBGMType = currentBGMType;
     }
 }
 

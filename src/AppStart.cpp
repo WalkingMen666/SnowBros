@@ -16,6 +16,18 @@ App::App() {
         // { 29, true, { {"Boss2", {350.0f, 250.0f}} } },
         // { 30, true, { {"Boss3", {400.0f, 300.0f}} } },
     };
+    m_IntroBGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/intro.mp3");
+    m_Stage1BGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/stage1_bgm.mp3");
+    m_Stage2BGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/stage2_bgm.mp3");
+    m_BossBGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/boss_bgm.mp3");
+    m_GameOverBGM = std::make_shared<Util::SFX>(RESOURCE_DIR "/Audio/game_over.mp3");
+
+    // Set BGM volumes
+    m_IntroBGM->SetVolume(10);
+    m_Stage1BGM->SetVolume(10);
+    m_Stage2BGM->SetVolume(10);
+    m_BossBGM->SetVolume(10);
+    m_GameOverBGM->SetVolume(10);
 }
 
 void App::Start() {
@@ -41,5 +53,6 @@ void App::Start() {
     // 初始化為初始畫面
     InitializeLevel(-1);
     m_CurrentState = State::UPDATE;
+    m_IntroBGM->Play(-1);  // Play intro music and loop indefinitely
     LOG_INFO("App started with initial level -1");
 }

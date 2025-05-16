@@ -10,6 +10,7 @@
 #include "UpdatableDrawable.hpp"
 #include "GameWorld.hpp"
 #include "Enemy.hpp"
+#include "Util/SFX.hpp"
 
 class App;
 
@@ -43,6 +44,14 @@ private:
     // State and Animation
     State m_State = State::SPAWN;
     bool  m_FacingRight = true;
+
+    // Sound Effects
+    std::shared_ptr<Util::SFX> m_SpawnSound;
+    std::shared_ptr<Util::SFX> m_AttackSound;
+    std::shared_ptr<Util::SFX> m_JumpSound;
+    std::shared_ptr<Util::SFX> m_DieSound;
+    std::shared_ptr<Util::SFX> m_KickSound;
+
 
     // Physics
     bool  m_IsOnPlatform = false;
@@ -89,6 +98,7 @@ private:
 
     // Private Methods
     void LoadAnimations();
+    void LoadSounds();
     void SwitchAnimation(State state, bool looping);
 };
 

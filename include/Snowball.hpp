@@ -6,6 +6,7 @@
 #include "App.hpp"
 #include "Util/Time.hpp"
 #include "Enemy.hpp"
+#include "Util/SFX.hpp"
 
 class Enemy;
 
@@ -48,6 +49,9 @@ private:
 
     // Animations
     std::map<std::string, std::shared_ptr<Util::Animation>> m_Animations;
+
+    // SFX
+    std::shared_ptr<Util::SFX> m_KillEnemySFX;
 
     // 來源敵人
     std::weak_ptr<Enemy> m_SourceEnemy; // 使用 weak_ptr 避免循環引用
