@@ -88,7 +88,7 @@ void Snowball::Update() {
 
     if (!isBeingPushed && m_SnowballState != SnowballState::Kicked && m_SnowballState != SnowballState::Killed) {
         m_SnowballState = SnowballState::Static;
-        position = CalculatePosition(m_Width, m_Height);
+        position = CalculatePosition(m_Width, m_Height, moveDistance * deltaTime);
         m_MeltTimer += deltaTime;
     }
 
@@ -155,7 +155,7 @@ glm::vec2 Snowball::CalculatePosition(float width, float height, float moveDista
     float gravity = -800.0f;
 
     m_IsOnPlatform ? m_JumpVelocity = 0.0f : m_JumpVelocity += gravity * deltaTime;
-    return GameWorld::map_collision_judgement(width, height, m_Transform.translation, m_JumpVelocity, gravity, moveDistance, m_IsOnPlatform);
+    return GameWorld::map_collision_judgement(width, height, m_Transform.translation, m_JumpVelocity, gravity, moveDistance, m_IsOnPlatform, false);
 }
 
 void Snowball::SetMeltStage(int stage) {

@@ -2,6 +2,7 @@
 #include "Util/Image.hpp"
 #include "Util/Logger.hpp"
 #include <random>
+#include "GameWorld.hpp"
 
 ScoreItem::ScoreItem(ScoreType type, float x, float y)
     : m_Type(type)
@@ -19,17 +20,20 @@ ScoreItem::ScoreItem(ScoreType type, float x, float y)
     std::string imagePath;
     switch (type) {
         case ScoreType::SCORE_100:
-            imagePath = "Resources/Image/item/100pt.png";
+            imagePath = RESOURCE_DIR"/Image/item/100pt.png";
             break;
         case ScoreType::SCORE_500:
-            imagePath = "Resources/Image/item/500pt.png";
+            imagePath = RESOURCE_DIR"/Image/item/500pt.png";
             break;
         case ScoreType::SCORE_1000:
-            imagePath = "Resources/Image/item/1000pt.png";
+            imagePath = RESOURCE_DIR"/Image/item/1000pt.png";
             break;
         case ScoreType::SCORE_2000:
-            imagePath = "Resources/Image/item/2000pt.png";
+            imagePath = RESOURCE_DIR"/Image/item/2000pt.png";
             break;
+        default:
+            LOG_INFO("Invalid ScoreType: " + std::to_string(static_cast<int>(type)));
+        imagePath = RESOURCE_DIR"/Image/item/object_26.png"; // 預設圖片
     }
 
     m_Drawable = std::make_shared<Util::Image>(imagePath);
@@ -47,16 +51,23 @@ void ScoreItem::Update() {
         return;
     }
 
-    // 如果還沒落地，進行自由落體運動
-    if (!m_IsOnGround) {
-        m_VelocityY += m_Gravity * deltaTime;
-        m_Transform.translation.y += m_VelocityY * deltaTime;
+    glm::vec2 position = m_Transform.translation;
+    bool isOnPlatform = m_IsOnGround;
+    m_VelocityY += m_Gravity * deltaTime; // 應用重力
+    glm::vec2 newPosition = GameWorld::map_collision_judgement(
+        GetWidth(), GetHeight(), position, m_VelocityY, m_Gravity, 0.0f, isOnPlatform);
 
-        // 檢查是否到達預設的地面高度
-        if (m_Transform.translation.y >= m_GroundY) {
-            m_Transform.translation.y = m_GroundY;
-            m_IsOnGround = true;
-            m_VelocityY = 0.0f;
+    m_Transform.translation = newPosition;
+    m_IsOnGround = isOnPlatform;
+    if (m_IsOnGround) {
+        m_VelocityY = 0.0f;
+    }
+
+    if (auto nick = App::GetInstance().GetNick()) {
+        if (glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetWidth()) / 2) {
+            OnCollision(nick);
+            m_IsActive = false;
+            App::GetInstance().AddRemovingObject(shared_from_this());
         }
     }
 }
@@ -95,22 +106,44 @@ std::shared_ptr<Core::Drawable> ScoreItem::GetDrawable() const {
     return m_Drawable;
 }
 
-bool ScoreItem::IsCollidingWithNick(const glm::vec2& nickPos, float nickWidth, float nickHeight) const {
-    if (!m_IsActive) return false;
-
-    float itemLeft = m_Transform.translation.x - GetWidth() / 2;
-    float itemRight = m_Transform.translation.x + GetWidth() / 2;
-    float itemTop = m_Transform.translation.y - GetHeight() / 2;
-    float itemBottom = m_Transform.translation.y + GetHeight() / 2;
-
-    float nickLeft = nickPos.x - nickWidth / 2;
-    float nickRight = nickPos.x + nickWidth / 2;
-    float nickTop = nickPos.y - nickHeight / 2;
-    float nickBottom = nickPos.y + nickHeight / 2;
-
-    return !(itemRight < nickLeft || itemLeft > nickRight ||
-             itemBottom < nickTop || itemTop > nickBottom);
+void ScoreItem::OnCollision(std::shared_ptr<Util::GameObject> other) {
+    if (auto nick = std::dynamic_pointer_cast<Nick>(other)) {
+        if (m_IsActive) {
+            ScoreType scoreType = m_Type;
+            switch (scoreType) {
+                case ScoreType::SCORE_100:
+                    nick->AddScore(100);
+                    break;
+                case ScoreType::SCORE_500:
+                    nick->AddScore(500);
+                break;
+                case ScoreType::SCORE_1000:
+                    nick->AddScore(1000);
+                break;
+                case ScoreType::SCORE_2000:
+                    nick->AddScore(2000);
+                break;
+            }
+        }
+    }
 }
+
+// bool ScoreItem::IsCollidingWithNick(const glm::vec2& nickPos, float nickWidth, float nickHeight) const {
+//     if (!m_IsActive) return false;
+//
+//     float itemLeft = m_Transform.translation.x - GetWidth() / 2;
+//     float itemRight = m_Transform.translation.x + GetWidth() / 2;
+//     float itemTop = m_Transform.translation.y - GetHeight() / 2;
+//     float itemBottom = m_Transform.translation.y + GetHeight() / 2;
+//
+//     float nickLeft = nickPos.x - nickWidth / 2;
+//     float nickRight = nickPos.x + nickWidth / 2;
+//     float nickTop = nickPos.y - nickHeight / 2;
+//     float nickBottom = nickPos.y + nickHeight / 2;
+//
+//     return !(itemRight < nickLeft || itemLeft > nickRight ||
+//              itemBottom < nickTop || itemTop > nickBottom);
+// }
 
 int ScoreItem::GetScore() const {
     switch (m_Type) {
@@ -125,4 +158,4 @@ int ScoreItem::GetScore() const {
         default:
             return 0;
     }
-} 
+}

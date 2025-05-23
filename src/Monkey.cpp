@@ -141,6 +141,54 @@ void Monkey::Update() {
                 m_Snowball = nullptr;
                 App::GetInstance().AddRemovingObject(shared_from_this());
             } else {
+                if(m_Snowball && m_Snowball->GetSnowballState() == Snowball::SnowballState::Static) {
+                    // 检查是否有其他处于kicked状态的雪球与此雪球碰撞
+                    Direction kickDirection = Direction::Right; // 默认方向
+                    bool collisionDetected = false;
+                    
+                    // 获取所有游戏对象
+                    auto& objects = GameWorld::GetObjects();
+                    
+                    // 获取当前雪球的位置和大小
+                    glm::vec2 currentSnowballPos = m_Snowball->GetPosition();
+                    float currentSnowballLeft = currentSnowballPos.x - m_Snowball->GetWidth() / 2;
+                    float currentSnowballRight = currentSnowballPos.x + m_Snowball->GetWidth() / 2;
+                    float currentSnowballTop = currentSnowballPos.y + m_Snowball->GetHeight() / 2;
+                    float currentSnowballBottom = currentSnowballPos.y - m_Snowball->GetHeight() / 2;
+                    
+                    for (auto& obj : objects) {
+                        // 只检查其他敌人的雪球，且必须是kicked状态
+                        if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
+                            if (enemy != shared_from_this() && enemy->GetSnowball() && 
+                                enemy->GetSnowball()->GetSnowballState() == Snowball::SnowballState::Kicked) {
+                                
+                                // 获取滚动雪球的位置和大小
+                                auto rollingSnowball = enemy->GetSnowball();
+                                glm::vec2 rollingSnowballPos = rollingSnowball->GetPosition();
+                                float rollingSnowballLeft = rollingSnowballPos.x - rollingSnowball->GetWidth() / 2;
+                                float rollingSnowballRight = rollingSnowballPos.x + rollingSnowball->GetWidth() / 2;
+                                float rollingSnowballTop = rollingSnowballPos.y + rollingSnowball->GetHeight() / 2;
+                                float rollingSnowballBottom = rollingSnowballPos.y - rollingSnowball->GetHeight() / 2;
+                                
+                                // 检查两个雪球是否碰撞
+                                if (rollingSnowballRight > currentSnowballLeft && 
+                                    rollingSnowballLeft < currentSnowballRight &&
+                                    rollingSnowballTop > currentSnowballBottom && 
+                                    rollingSnowballBottom < currentSnowballTop) {
+                                    
+                                    // 发生了碰撞，使用滚动雪球的位置确定方向
+                                    kickDirection = rollingSnowballPos.x > currentSnowballPos.x ? 
+                                                Direction::Left : Direction::Right;
+                                    collisionDetected = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (collisionDetected) {
+                        m_Snowball->OnKick(kickDirection);
+                    }
+                }
                 SetVisible(false);
                 SetPosition(m_Snowball->GetPosition());
                 if (m_Snowball->IsMelted()) {
@@ -162,12 +210,6 @@ void Monkey::Update() {
             }
         }
     } else if (m_State == EnemyState::Dead) {
-        if(m_Snowball && m_Snowball->GetSnowballState() != Snowball::SnowballState::Killed) {
-            App::GetInstance().AddRemovingObject(m_Snowball);
-            m_Snowball = nullptr;
-            App::GetInstance().AddRemovingObject(shared_from_this());
-            return;
-        }
         m_DeathTimer += deltaTime;
         if (!m_HasLanded) {
             newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
@@ -186,13 +228,8 @@ void Monkey::Update() {
         }
         SetPosition(newPosition);
     }
-    if (m_MaxHealth <= 0 && m_State != EnemyState::Dead) {
-        SetState(State::DIE);
-        m_State = EnemyState::Dead;
-        m_DeathTimer = 0.0f;
-        m_HasLanded = false;
-        m_DeathVelocity = 450.0f;
-        SetAnimation("die_flying"); // 開始飛行動畫
+    if (m_MaxHealth <= 0 && m_State != EnemyState::Dead && m_State != EnemyState::Snowball) {
+        Die();
     }
     if (auto nick = App::GetInstance().GetNick()) {
         if (glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetCharacterWidth()) / 2) {
@@ -217,18 +254,12 @@ void Monkey::OnHit() {
 }
 
 void Monkey::Die() {
-    if(m_State == EnemyState::Snowball) {
-        m_Snowball->SetVisible(false);
-        App::GetInstance().AddRemovingObject(m_Snowball);
-        App::GetInstance().AddRemovingObject(shared_from_this());
-    }else {
-        SetState(State::DIE);
-        m_State = EnemyState::Dead;
-        m_DeathTimer = 0.0f;
-        m_HasLanded = false;
-        m_DeathVelocity = 450.0f;
-        SetAnimation("die_flying"); // 開始飛行動畫
-    }
+    SetState(State::DIE);
+    m_State = EnemyState::Dead;
+    m_DeathTimer = 0.0f;
+    m_HasLanded = false;
+    m_DeathVelocity = 450.0f;
+    SetAnimation("die_flying"); // 開始飛行動畫
 }
 
 std::pair<float, float> Monkey::GetSizeForMeltStage() const {

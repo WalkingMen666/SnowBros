@@ -28,6 +28,16 @@ App::App() {
     m_Stage2BGM->SetVolume(10);
     m_BossBGM->SetVolume(10);
     m_GameOverBGM->SetVolume(10);
+
+    // 初始化數字圖片快取
+    m_DigitImages.resize(10);
+    for (int i = 0; i <= 9; ++i) {
+        std::string imagePath = RESOURCE_DIR "/Image/Text/red_" + std::to_string(i) + ".png";
+        m_DigitImages[i] = std::make_shared<Util::Image>(imagePath);
+        if (!m_DigitImages[i]) {
+            LOG_INFO("Failed to load digit image: {}", imagePath);
+        }
+    }
 }
 
 void App::Start() {
@@ -42,13 +52,25 @@ void App::Start() {
     m_Overlay->SetZIndex(5); // 設置 Z 軸順序
     m_Root.AddChild(m_Overlay);
 
-    // 初始化 UI
+    // 初始化生命值 UI
     m_nickLives = std::make_shared<BackgroundImage>();
     m_nickLives->SetImage(RESOURCE_DIR "/Image/Text/red_3.png");
     m_nickLives->m_Transform.translation = {-320.0f, 360.0f};
     m_nickLives->SetZIndex(5);
     m_nickLives->SetVisible(false);
     m_Root.AddChild(m_nickLives);
+
+    // 初始化分數 UI
+    m_ScoreDigits.resize(MAX_SCORE_DIGITS);
+    for (int i = 0; i < MAX_SCORE_DIGITS; ++i) {
+        m_ScoreDigits[i] = std::make_shared<BackgroundImage>();
+        m_ScoreDigits[i]->SetImage(RESOURCE_DIR "/Image/Text/red_0.png");
+        m_ScoreDigits[i]->m_Transform.translation = {m_ScorePosition.x - i * m_ScoreDigitSpacing, m_ScorePosition.y};
+        m_ScoreDigits[i]->m_Transform.scale = {1.0f, 1.0f};
+        m_ScoreDigits[i]->SetZIndex(5);
+        m_ScoreDigits[i]->SetVisible(false);
+        m_Root.AddChild(m_ScoreDigits[i]);
+    }
 
     // 初始化為初始畫面
     InitializeLevel(-1);

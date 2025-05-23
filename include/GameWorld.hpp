@@ -48,8 +48,8 @@ private:
     std::vector<std::shared_ptr<ScoreItem>> m_ScoreItems;
     std::shared_ptr<Nick> m_Nick;
 
-    void UpdateScoreItems();
-    void CheckScoreItemCollisions();
+    // void UpdateScoreItems();
+    // void CheckScoreItemCollisions();
 };
 
 #endif // GAME_WORLD_HPP

@@ -165,49 +165,49 @@ void GameWorld::Update() {
         }
     }
 
-    // 更新分數物品
-    UpdateScoreItems();
-
-    // 檢查分數物品碰撞
-    CheckScoreItemCollisions();
+    // // 更新分數物品
+    // UpdateScoreItems();
+    //
+    // // 檢查分數物品碰撞
+    // CheckScoreItemCollisions();
 }
 
-void GameWorld::UpdateScoreItems() {
-    // 更新所有分數物品
-    for (auto it = m_ScoreItems.begin(); it != m_ScoreItems.end();) {
-        if (!(*it) || !(*it)->IsActive()) {
-            it = m_ScoreItems.erase(it);
-        } else {
-            (*it)->Update();
-            ++it;
-        }
-    }
-}
+// void GameWorld::UpdateScoreItems() {
+//     // 更新所有分數物品
+//     for (auto it = m_ScoreItems.begin(); it != m_ScoreItems.end();) {
+//         if (!(*it) || !(*it)->IsActive()) {
+//             it = m_ScoreItems.erase(it);
+//         } else {
+//             (*it)->Update();
+//             ++it;
+//         }
+//     }
+// }
 
-void GameWorld::CheckScoreItemCollisions() {
-    if (!m_Nick) return;
-
-    auto nickPos = m_Nick->GetPosition();
-    auto nickWidth = m_Nick->GetWidth();
-    auto nickHeight = m_Nick->GetHeight();
-
-    // 檢查所有分數物品與Nick的碰撞
-    for (auto it = m_ScoreItems.begin(); it != m_ScoreItems.end();) {
-        if (!(*it) || !(*it)->IsActive()) {
-            it = m_ScoreItems.erase(it);
-            continue;
-        }
-
-        if ((*it)->IsCollidingWithNick(nickPos, nickWidth, nickHeight)) {
-            // 記錄得分
-            LOG_INFO("Score gained: {}", (*it)->GetScore());
-            (*it)->SetActive(false);
-            it = m_ScoreItems.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
+// void GameWorld::CheckScoreItemCollisions() {
+//     if (!m_Nick) return;
+//
+//     auto nickPos = m_Nick->GetPosition();
+//     auto nickWidth = m_Nick->GetWidth();
+//     auto nickHeight = m_Nick->GetHeight();
+//
+//     // 檢查所有分數物品與Nick的碰撞
+//     for (auto it = m_ScoreItems.begin(); it != m_ScoreItems.end();) {
+//         if (!(*it) || !(*it)->IsActive()) {
+//             it = m_ScoreItems.erase(it);
+//             continue;
+//         }
+//
+//         if ((*it)->IsCollidingWithNick(nickPos, nickWidth, nickHeight)) {
+//             // 記錄得分
+//             LOG_INFO("Score gained: {}", (*it)->GetScore());
+//             (*it)->SetActive(false);
+//             it = m_ScoreItems.erase(it);
+//         } else {
+//             ++it;
+//         }
+//     }
+// }
 
 float GameWorld::GetWidth() const {
     return Map::MAP_WIDTH * Map::TILE_SIZE;

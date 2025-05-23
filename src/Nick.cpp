@@ -9,6 +9,7 @@ Nick::Nick()
     : Character(RESOURCE_DIR "/Image/Character/Tom&Nick/spawn1.png")
     , AnimatedCharacter({})
 {
+    m_Score = 0;
     LoadAnimations();
     LoadSounds();
     SetPosition({0.0f, -325.0f});
@@ -260,6 +261,15 @@ void Nick::CheatInvincible() {
     m_IsInvincible = !m_IsInvincible;
     m_InvincibleTimer = 99999.0f;
     SetVisible(true);
+}
+
+void Nick::AddScore(int score) {
+    m_Score += score;
+    LOG_INFO("Nick score updated: {}", m_Score);
+}
+
+int Nick::GetScore() const {
+    return m_Score;
 }
 
 void Nick::LoadAnimations() {

@@ -174,25 +174,39 @@ void App::Update() {
             m_Root.RemoveChild(obj);
         }m_RemovingObjects.clear();
 
-        if (GameWorld::GetObjects().empty() && m_Nick && m_Nick->GetState() != Nick::State::DIE) {
-            if (m_CurrentLevel < 30) {
-                for (auto obj : GameWorld::GetObjects()) {
-                    m_Root.RemoveChild(obj);
-                }
-                GameWorld::GetObjects().clear();
 
-                m_LevelingTimer += deltaTime;
-                if (m_LevelingTimer < m_LevelingDuration) {
-                    m_Overlay->SetImage(RESOURCE_DIR "/Image/Floor/FLOOR" + std::to_string(m_CurrentLevel + 1) + ".png");
-                    m_Overlay->SetVisible(true);
-                    m_nickLives->SetVisible(false);
-                }else {
-                    m_LevelingTimer = 0.0f;
-                    m_Overlay->SetVisible(false);
-                    m_PRM->NextPhase();
-                    InitializeLevel(m_PRM->GetPhase());
-                    m_Nick->SetPosition({0.0f, -325.0f});
-                    m_Nick->SetState(Nick::State::SPAWN);
+        // 檢查是否所有敵人都已清除，且 Nick 未死亡
+        bool hasEnemies = false;
+        for (const auto& obj : GameWorld::GetObjects()) {
+            if (std::dynamic_pointer_cast<Enemy>(obj)) {
+                hasEnemies = true;
+                break;
+            }
+        }
+
+        if (!hasEnemies && m_Nick && m_Nick->GetState() != Nick::State::DIE) {
+            if (m_CurrentLevel < 30) {
+                // for (auto obj : GameWorld::GetObjects()) {
+                //     m_Root.RemoveChild(obj);
+                // }
+                // GameWorld::GetObjects().clear();
+
+                m_EndTimer += deltaTime;
+                if (m_EndTimer >= m_EndDuration) {
+                    m_LevelingTimer += deltaTime;
+                    if (m_LevelingTimer < m_LevelingDuration) {
+                        m_Overlay->SetZIndex(10); // 設置 Z 軸順序
+                        m_Overlay->SetImage(RESOURCE_DIR "/Image/Floor/FLOOR" + std::to_string(m_CurrentLevel + 1) + ".png");
+                        m_Overlay->SetVisible(true);
+                        m_nickLives->SetVisible(false);
+                    }else {
+                        m_LevelingTimer = 0.0f;
+                        m_Overlay->SetVisible(false);
+                        m_PRM->NextPhase();
+                        InitializeLevel(m_PRM->GetPhase());
+                        m_Nick->SetPosition({0.0f, -325.0f});
+                        m_Nick->SetState(Nick::State::SPAWN);
+                    }
                 }
             } else {
                 m_CurrentState = State::END;
@@ -218,6 +232,11 @@ void App::SetState(State state) {
             m_Root.RemoveChild(obj);
         }
         GameWorld::GetObjects().clear();
+
+        // 隱藏分數 UI
+        for (auto& digit : m_ScoreDigits) {
+            digit->SetVisible(false);
+        }
 
         // Stop all BGM
         m_IntroBGM->FadeOut(500);
@@ -263,6 +282,11 @@ void App::InitializeLevel(int levelId) {
     m_FadingIn = true;
     m_Overlay->SetVisible(levelId == -1);
     m_nickLives->SetVisible(levelId > 0);
+
+    // 設置分數 UI 可見性
+    for (auto& digit : m_ScoreDigits) {
+        digit->SetVisible(levelId > 0);
+    }
 
     if (levelId == 1) {
         if (!m_Nick) {
@@ -349,8 +373,21 @@ void App::PlayBGMForLevel(int levelId) {
 }
 
 void App::UpdateUI() {
-    if(m_Nick) {
+    if (m_Nick) {
+        // 更新生命值 UI
         int lives = m_Nick->GetLives();
         m_nickLives->SetImage(RESOURCE_DIR "/Image/Text/red_" + std::to_string(lives) + ".png");
+
+        // 更新分數 UI
+        int score = m_Nick->GetScore();
+        score = std::clamp(score, 0, 999999);
+        std::string scoreStr = std::to_string(score);
+        scoreStr = std::string(MAX_SCORE_DIGITS - scoreStr.length(), '0') + scoreStr;
+
+        for (int i = 0; i < MAX_SCORE_DIGITS; ++i) {
+            int digitValue = scoreStr[i] - '0';
+            m_ScoreDigits[MAX_SCORE_DIGITS - 1 - i]->SetImage(RESOURCE_DIR "/Image/Text/red_" + std::to_string(digitValue) + ".png");
+            m_ScoreDigits[MAX_SCORE_DIGITS - 1 - i]->SetVisible(m_CurrentLevel > 0);
+        }
     }
 }

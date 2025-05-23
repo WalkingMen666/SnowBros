@@ -27,6 +27,9 @@ public:
     void SetDirection(bool facingRight);
     void AddHealth();
     void CheatInvincible();
+    // 分數相關方法
+    void AddScore(int score);
+    int GetScore() const;
 
 
     [[nodiscard]] State GetState() const { return m_State; }
@@ -69,6 +72,9 @@ private:
     int   m_Lives = 3;
     float m_DeathPauseTimer = 0.0f;
 
+    // score
+    int  m_Score;
+
     // Constants
     static constexpr float characterWidth        = 35.0f;
     static constexpr float characterHeight       = 55.0f;
@@ -77,6 +83,7 @@ private:
     static constexpr float m_BlinkInterval       = 0.2f;
     static constexpr float m_DeathInitialVelocity= 100.0f;
     static constexpr float m_DeathPauseDuration  = 1.0f;
+
 
     // Animations
     std::shared_ptr<Util::Animation> m_SpawnAnimation;

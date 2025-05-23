@@ -91,6 +91,12 @@ private:
 
     // UI
     std::shared_ptr<BackgroundImage> m_nickLives;
+    // score
+    std::vector<std::shared_ptr<BackgroundImage>> m_ScoreDigits; // 6 個數字物件
+    std::vector<std::shared_ptr<Util::Image>> m_DigitImages; // 快取 0-9 圖片
+    static constexpr int MAX_SCORE_DIGITS = 6; // 最大 6 位數
+    float m_ScoreDigitSpacing = 40.0f; // 數字間距
+    glm::vec2 m_ScorePosition = {320.0f, 360.0f}; // 右上角位置
 
     // Animation and Timing
     float m_FadeTimer = 0.0f;
@@ -100,6 +106,8 @@ private:
     const float m_GameOverDuration = 0.1f;
     float m_LevelingTimer = 0.0f;
     const float m_LevelingDuration = 1.5f;
+    float m_EndTimer = 0.0f;
+    const float m_EndDuration = 3.0f;
 
     // Private Methods
     void InitializeLevel(int levelId);
