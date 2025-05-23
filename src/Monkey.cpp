@@ -132,16 +132,6 @@ void Monkey::Update() {
                 }
             }
             SetPosition(newPosition);
-
-            if (m_MaxHealth <= 0) {
-                m_CurrentState = State::DIE;
-                SetState(State::DIE);
-                m_State = EnemyState::Dead;
-                m_DeathTimer = 0.0f;
-                m_HasLanded = false;
-                m_DeathVelocity = 450.0f;
-                SetAnimation("die_flying"); // 開始飛行動畫
-            }
         }
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
@@ -172,6 +162,12 @@ void Monkey::Update() {
             }
         }
     } else if (m_State == EnemyState::Dead) {
+        if(m_Snowball && m_Snowball->GetSnowballState() != Snowball::SnowballState::Killed) {
+            App::GetInstance().AddRemovingObject(m_Snowball);
+            m_Snowball = nullptr;
+            App::GetInstance().AddRemovingObject(shared_from_this());
+            return;
+        }
         m_DeathTimer += deltaTime;
         if (!m_HasLanded) {
             newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
@@ -189,6 +185,14 @@ void Monkey::Update() {
             }
         }
         SetPosition(newPosition);
+    }
+    if (m_MaxHealth <= 0 && m_State != EnemyState::Dead) {
+        SetState(State::DIE);
+        m_State = EnemyState::Dead;
+        m_DeathTimer = 0.0f;
+        m_HasLanded = false;
+        m_DeathVelocity = 450.0f;
+        SetAnimation("die_flying"); // 開始飛行動畫
     }
     if (auto nick = App::GetInstance().GetNick()) {
         if (glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetCharacterWidth()) / 2) {

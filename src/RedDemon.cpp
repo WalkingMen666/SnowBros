@@ -127,6 +127,7 @@ void RedDemon::Update() {
     } else if (m_State == EnemyState::Dead) {
         if(m_Snowball && m_Snowball->GetSnowballState() != Snowball::SnowballState::Killed) {
             App::GetInstance().AddRemovingObject(m_Snowball);
+            m_Snowball = nullptr;
             App::GetInstance().AddRemovingObject(shared_from_this());
             return;
         }
@@ -148,8 +149,7 @@ void RedDemon::Update() {
         }
         SetPosition(newPosition);
     }
-    if (m_MaxHealth <= 0) {
-        m_CurrentState = State::DIE;
+    if (m_MaxHealth <= 0 && m_State != EnemyState::Dead) {
         SetState(State::DIE);
         m_State = EnemyState::Dead;
         m_DeathTimer = 0.0f;

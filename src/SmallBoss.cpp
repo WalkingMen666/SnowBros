@@ -91,16 +91,6 @@ void SmallBoss::Update() {
         if (m_CurrentState == State::WALK) {
              m_Drawable = m_Animations[(m_Direction == Direction::Right) ? "walk_right" : "walk_left"];
         }
-
-        if (m_MaxHealth <= 0) {
-            m_CurrentState = State::DIE;
-            SetState(State::DIE);
-            m_State = EnemyState::Dead;
-            m_DeathTimer = 0.0f;
-            m_HasLanded = false;
-            m_DeathVelocity = 450.0f;
-        }
-
     } else if (m_State == EnemyState::Snowball) {
         if (m_Snowball) {
             m_Snowball->Update();
@@ -130,24 +120,38 @@ void SmallBoss::Update() {
             }
         }
     } else if (m_State == EnemyState::Dead) {
+        if(m_Snowball && m_Snowball->GetSnowballState() != Snowball::SnowballState::Killed) {
+            App::GetInstance().AddRemovingObject(m_Snowball);
+            m_Snowball = nullptr;
+            App::GetInstance().AddRemovingObject(shared_from_this());
+            return;
+        }
         m_DeathTimer += deltaTime;
         if (!m_HasLanded) {
             newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
-            if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= -310.0f + m_Height / 2)) {
-                newPosition.y = -310.0f + m_Height / 2;
+            if (m_DeathTimer >= m_DeathDuration && (m_IsOnPlatform || newPosition.y <= m_GroundLevel)) {
+                if(newPosition.y < m_GroundLevel) newPosition.y = m_GroundLevel;
                 m_DeathVelocity = 0.0f;
                 m_HasLanded = true;
-                m_DeathTimer = 0.0f;
+                m_DeathTimer = 0.0f; // 重置計時器用於落地等待
+                SetAnimation("die_landing"); // 切換到落地動畫
             }
         } else {
-            newPosition = GameWorld::map_collision_judgement(20, 20, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
+            newPosition = GameWorld::map_collision_judgement(46, 35, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
             if (m_DeathTimer >= m_LandingDuration) {
                 App::GetInstance().AddRemovingObject(shared_from_this());
             }
         }
         SetPosition(newPosition);
     }
-
+    if (m_MaxHealth <= 0 && m_State != EnemyState::Dead) {
+        SetState(State::DIE);
+        m_State = EnemyState::Dead;
+        m_DeathTimer = 0.0f;
+        m_HasLanded = false;
+        m_DeathVelocity = 450.0f;
+        SetAnimation("die_flying"); // 開始飛行動畫
+    }
     // 碰撞檢測
     if (auto nick = App::GetInstance().GetNick()) {
         if (glm::distance(GetPosition(), nick->GetPosition()) < (nick->GetCharacterWidth() + GetCharacterWidth()) / 2) {

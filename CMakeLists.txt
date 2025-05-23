@@ -48,6 +48,7 @@ set(SRC_FILES
     ${SRC_DIR}/Nick.cpp
     ${SRC_DIR}/PhaseManager.cpp
     ${SRC_DIR}/RedDemon.cpp
+    ${SRC_DIR}/ScoreItem.cpp
     ${SRC_DIR}/SmallBoss.cpp
     ${SRC_DIR}/SmallBoss2.cpp
     ${SRC_DIR}/Snowball.cpp
@@ -74,6 +75,7 @@ set(HEADER_FILES
     ${INCLUDE_DIR}/Nick.hpp
     ${INCLUDE_DIR}/PhaseResourceManger.hpp
     ${INCLUDE_DIR}/RedDemon.hpp
+    ${INCLUDE_DIR}/ScoreItem.hpp
     ${INCLUDE_DIR}/SmallBoss.hpp
     ${INCLUDE_DIR}/SmallBoss2.hpp
     ${INCLUDE_DIR}/Snowball.hpp
