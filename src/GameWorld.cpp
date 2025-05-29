@@ -24,7 +24,7 @@ void GameWorld::RemoveObject(std::shared_ptr<UpdatableDrawable> obj) {
 }
 
 glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float characterHeight, glm::vec2 position,
-                                             float& m_JumpVelocity, float m_Gravity, float moveDistance, bool& isOnPlatform) {
+                                             float& m_JumpVelocity, float m_Gravity, float moveDistance, bool& isOnPlatform, bool stepOnSnowBall) {
     static const float GROUND_LEVEL = -305.0f;
     const float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
 
@@ -97,7 +97,7 @@ glm::vec2 GameWorld::map_collision_judgement(float characterWidth, float charact
         }
     }
 
-    if (!foundPlatform && m_JumpVelocity <= 0) {
+    if (!foundPlatform && m_JumpVelocity <= 0 && stepOnSnowBall) {
         for (const auto& obj : m_Objects) {
             if (auto enemy = std::dynamic_pointer_cast<Enemy>(obj)) {
                 if (enemy->GetState() == EnemyState::Snowball) {

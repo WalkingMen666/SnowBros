@@ -221,9 +221,11 @@ void Monkey::Update() {
                 SetAnimation("die_landing"); // 切換到落地動畫
             }
         } else {
-            newPosition = GameWorld::map_collision_judgement(46, 35, newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
+            auto scoreItem = std::make_shared<ScoreItem>(ScoreItem::ScoreType::SCORE_1000, newPosition.x, newPosition.y);
+            newPosition = GameWorld::map_collision_judgement(GetCharacterWidth(), GetCharacterHeight(), newPosition, m_DeathVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
             if (m_DeathTimer >= m_LandingDuration) {
                 App::GetInstance().AddRemovingObject(shared_from_this());
+                App::GetInstance().AddPendingObject(scoreItem);
             }
         }
         SetPosition(newPosition);

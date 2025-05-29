@@ -75,7 +75,7 @@ void ScoreItem::Update() {
 float ScoreItem::GetWidth() const {
     switch (m_Type) {
         case ScoreType::SCORE_100:
-            return 15.0f;
+            return 30.0f;
         case ScoreType::SCORE_500:
             return 16.0f;
         case ScoreType::SCORE_1000:
@@ -90,7 +90,7 @@ float ScoreItem::GetWidth() const {
 float ScoreItem::GetHeight() const {
     switch (m_Type) {
         case ScoreType::SCORE_100:
-            return 16.0f;
+            return 32.0f;
         case ScoreType::SCORE_500:
             return 14.0f;
         case ScoreType::SCORE_1000:
