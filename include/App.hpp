@@ -20,7 +20,7 @@ enum class Direction { Left, Right };
 
 class App {
 public:
-    enum class State { START, UPDATE, END, GAMEOVER };
+    enum class State { START, UPDATE, END, GAMEOVER, FINISH };
 
     App();
     App(const App&) = delete;

@@ -15,6 +15,7 @@ int main(int, char**) {
             break;
             case App::State::UPDATE:
             case App::State::GAMEOVER:
+            case App::State::FINISH:
                 app.Update();
             break;
             case App::State::END:
