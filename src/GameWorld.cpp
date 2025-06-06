@@ -8,6 +8,15 @@ GameWorld::GameWorld() {
     // 初始化
 }
 
+void GameWorld::Update() {
+    // 更新所有遊戲物件
+    for (auto& obj : m_Objects) {
+        if (obj) {
+            obj->Update();
+        }
+    }
+}
+
 std::vector<std::shared_ptr<UpdatableDrawable>>& GameWorld::GetObjects() {
     return m_Objects;
 }
@@ -157,57 +166,31 @@ bool GameWorld::CollisionToWall(const glm::vec2& position, float width, float he
     return false;
 }
 
-void GameWorld::Update() {
-    // 更新所有遊戲物件
-    for (auto& obj : m_Objects) {
-        if (obj) {
-            obj->Update();
+bool GameWorld::isGrounded(const glm::vec2& position, float width, float height, bool isOnPlatform) {
+    if (!isOnPlatform) return false;
+    auto prm = App::GetPRM();
+    if (!prm) {
+        LOG_ERROR("GameWorld::isGrounded: PhaseResourceManager is not initialized");
+        return false;
+    }
+    const Map& map = prm->GetMap();
+
+    int leftTileX = std::max(0, std::min(static_cast<int>((position.x - width / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int rightTileX = std::max(0, std::min(static_cast<int>((position.x + width / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
+    int bottomTileY = std::max(0, std::min(static_cast<int>((380.0f - (position.y - height / 2) + 5.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
+    int graceVal = 0;
+
+    for(int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
+        for (int tileY = bottomTileY+graceVal; tileY <= bottomTileY-graceVal; ++tileY) {
+            if(map.GetTile(tileX, tileY) == 3) {
+                LOG_INFO("FALL");
+                return true;
+            }
         }
     }
-
-    // // 更新分數物品
-    // UpdateScoreItems();
-    //
-    // // 檢查分數物品碰撞
-    // CheckScoreItemCollisions();
+    LOG_INFO("isGrounded!");
+    return false;
 }
-
-// void GameWorld::UpdateScoreItems() {
-//     // 更新所有分數物品
-//     for (auto it = m_ScoreItems.begin(); it != m_ScoreItems.end();) {
-//         if (!(*it) || !(*it)->IsActive()) {
-//             it = m_ScoreItems.erase(it);
-//         } else {
-//             (*it)->Update();
-//             ++it;
-//         }
-//     }
-// }
-
-// void GameWorld::CheckScoreItemCollisions() {
-//     if (!m_Nick) return;
-//
-//     auto nickPos = m_Nick->GetPosition();
-//     auto nickWidth = m_Nick->GetWidth();
-//     auto nickHeight = m_Nick->GetHeight();
-//
-//     // 檢查所有分數物品與Nick的碰撞
-//     for (auto it = m_ScoreItems.begin(); it != m_ScoreItems.end();) {
-//         if (!(*it) || !(*it)->IsActive()) {
-//             it = m_ScoreItems.erase(it);
-//             continue;
-//         }
-//
-//         if ((*it)->IsCollidingWithNick(nickPos, nickWidth, nickHeight)) {
-//             // 記錄得分
-//             LOG_INFO("Score gained: {}", (*it)->GetScore());
-//             (*it)->SetActive(false);
-//             it = m_ScoreItems.erase(it);
-//         } else {
-//             ++it;
-//         }
-//     }
-// }
 
 float GameWorld::GetWidth() const {
     return Map::MAP_WIDTH * Map::TILE_SIZE;

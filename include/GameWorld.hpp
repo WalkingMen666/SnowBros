@@ -33,6 +33,7 @@ public:
         bool &isOnPlatform,
         bool stepOnSnowBall = true);
     static bool CollisionToWall(const glm::vec2& position, float width, float height, bool isOnPlatform);
+    static bool isGrounded(const glm::vec2& position, float width, float height, bool isOnPlatform);
 
     // 獲取所有敵人
     const std::vector<std::shared_ptr<Enemy>>& GetEnemies() const { return m_Enemies; }

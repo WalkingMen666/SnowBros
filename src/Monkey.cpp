@@ -52,7 +52,7 @@ void Monkey::Update() {
             newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, position, m_JumpVelocity, m_Gravity, moveDistance, m_IsOnPlatform);
 
             // Move the platform drop mechanism after map_collision_judgement
-            if (m_CurrentState == State::STAND && m_IsOnPlatform && abs(position.y - m_GroundLevel) >= 10 && (std::rand() % 100 < 1)) {
+            if (m_CurrentState == State::STAND && m_IsOnPlatform && abs(position.y - m_GroundLevel) >= 10 && (std::rand() % 100 < 1) && GameWorld::isGrounded(position, m_Width, m_Height, m_IsOnPlatform)) {
                 // 20% chance to fall through platform when standing
                 m_JumpVelocity = -10.0f; // Small negative velocity to start falling
                 SetState(State::FALL);

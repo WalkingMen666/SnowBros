@@ -15,7 +15,7 @@ void Map::LoadFromFile(const std::string& filename) {
         std::vector<int> rowData;
         for (char c : line) {
             if (rowData.size() >= MAP_WIDTH) break;
-            if (c >= '0' && c <= '2') {
+            if (c >= '0' && c <= '3') {
                 rowData.push_back(c - '0');
             }
         }
