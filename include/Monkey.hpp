@@ -58,7 +58,7 @@ private:
     // Constants
     const float ACTION_DELAY = 0.5f;
     const float m_Width = 46.0f;
-    const float m_Height = 56.0f;
+    const float m_Height = 52.0f;
     const float m_AttackDuration = 1.0f; // Duration of attack animation
 
     // Private Methods

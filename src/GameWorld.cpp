@@ -178,17 +178,17 @@ bool GameWorld::isGrounded(const glm::vec2& position, float width, float height,
     int leftTileX = std::max(0, std::min(static_cast<int>((position.x - width / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
     int rightTileX = std::max(0, std::min(static_cast<int>((position.x + width / 2 + 410.0f) / Map::TILE_SIZE), Map::MAP_WIDTH - 1));
     int bottomTileY = std::max(0, std::min(static_cast<int>((380.0f - (position.y - height / 2) + 5.0f) / Map::TILE_SIZE), Map::MAP_HEIGHT - 1));
-    int graceVal = 0;
+    int graceVal = 1;
 
     for(int tileX = leftTileX; tileX <= rightTileX; ++tileX) {
-        for (int tileY = bottomTileY+graceVal; tileY <= bottomTileY-graceVal; ++tileY) {
+        for (int tileY = bottomTileY-graceVal; tileY <= bottomTileY+graceVal; ++tileY) {
             if(map.GetTile(tileX, tileY) == 3) {
-                LOG_INFO("FALL");
+                LOG_INFO("isGrounded!");
                 return true;
             }
         }
     }
-    LOG_INFO("isGrounded!");
+    LOG_INFO("FALL");
     return false;
 }
 

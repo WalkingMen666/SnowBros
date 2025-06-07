@@ -8,14 +8,12 @@ App::App() {
         { 0, false, {} },  // 開始畫面
         { 1, false, { {"RedDemon", {-260.0f, 160.0f}}, {"Monkey", {260.0f, 160.0f}}, {"Frog", {0.0f, -40.0f}}, {"Fat", {0.0f, 250.0f}} } },
         { 2, false, { {"RedDemon", {150.0f, 100.0f}}, {"RedDemon", {-150.0f, 100.0f}}, {"RedDemon", {-110.0f, -185.0f}}, {"RedDemon", {65.0f, -80.0f}}}},
-        { 3, false, {{"RedDemon", {-260.0f, 160.0f}}} }, // 第3關: 無敵人
-        { 9, false, {} }, // 第3關: 無敵人
-        { 10,true, { {"Boss", {300.0f, 80.0f}}, } }, // 第10關: 1隻 Boss
-        { 20,true, { {"Boss2", {0.0f, 100.0f}}, } }, // 第20關: 1隻 Boss2
-        {14, false, { {"Monkey", {0.0f, 0.0f}}}}
-        // { 28, true, { {"Boss1", {300.0f, 200.0f}} } }, // Boss 關示例
-        // { 29, true, { {"Boss2", {350.0f, 250.0f}} } },
-        // { 30, true, { {"Boss3", {400.0f, 300.0f}} } },
+        { 3, false, {{"RedDemon", {-260.0f, 160.0f}}} },
+        { 9, false, {} },
+        { 10, true, { {"Boss", {300.0f, 80.0f}}, } }, // 第10關: 1隻 Boss
+        { 20, true, { {"Boss2", {0.0f, 100.0f}}, } }, // 第20關: 1隻 Boss2
+        { 14, false, { {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}} } },
+        { 19, false, { {"RedDemon", {-260.0f, 160.0f}}, {"RedDemon", {260.0f, 160.0f}}, {"Frog", {0.0f, -40.0f}}, {"Fat", {0.0f, 250.0f}} } }
     };
     m_IntroBGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/intro.mp3");
     m_Stage1BGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/stage1_bgm.mp3");

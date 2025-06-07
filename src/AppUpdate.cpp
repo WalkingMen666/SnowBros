@@ -84,7 +84,7 @@ void App::Update() {
     if (Util::Input::IsKeyDown(Util::Keycode::N) && !hasSwitchedPhase) {
       m_PRM->NextPhase();
       m_CurrentLevel = m_PRM->GetPhase();
-      newPosition = {0.0f, -325.0f};
+      m_CurrentLevel == 19 ? newPosition = {0.0f, -175.0f} : newPosition = {0.0f, -325.0f};
       hasSwitchedPhase = true;
       LOG_INFO("Entering Phase/Level: {}", m_CurrentLevel);
 
@@ -212,7 +212,7 @@ void App::Update() {
     }
 
     if (!hasEnemies && m_Nick && m_Nick->GetState() != Nick::State::DIE) {
-      if (m_CurrentLevel < 30) {
+      if (m_CurrentLevel < 20) {
         m_EndTimer += deltaTime;
         if (m_EndTimer >= m_EndDuration) {
           m_LevelingTimer += deltaTime;
@@ -227,7 +227,7 @@ void App::Update() {
             m_Overlay->SetVisible(false);
             m_PRM->NextPhase();
             InitializeLevel(m_PRM->GetPhase());
-            m_Nick->SetPosition({0.0f, -325.0f});
+            m_CurrentLevel == 19 ? m_Nick->SetPosition({0.0f, -175.0f}) : m_Nick->SetPosition({0.0f, -325.0f});
             m_Nick->SetState(Nick::State::SPAWN);
           }
         }

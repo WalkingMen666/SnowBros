@@ -152,8 +152,7 @@ void Nick::Update() {
                     m_DeathPauseTimer = 0.0f;
                     if (m_Lives > 0) {
                         SetState(State::SPAWN);
-                        // m_SpawnSound->Play();
-                        position = {0.0f, -325.0f};
+                        App::GetInstance().GetCurrentLevel() == 19 ? position = {0.0f, -175.0f} : position = {0.0f, -325.0f};
                     } else {
                         App::GetInstance().SetState(App::State::GAMEOVER);
                     }
