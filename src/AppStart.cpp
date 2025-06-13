@@ -24,7 +24,7 @@ App::App() {
         { 16, false, { {"Fat", {0.0f, 220.0f}},{"Monkey", {-200.0f, 70.0f}},{"Monkey", {200.0f, 130.0f}},{"Monkey", {0.0f, -20.0f}}, } },
         { 17, false, { {"Monkey", {0.0f, 20.0f}},{"Monkey", {-370.0f, 230.0f}},{"RedDemon", {0.0f, -140.0f}},{"RedDemon", {0.0f, 170.0f}},{"RedDemon", {370.0f, 230.0f}}, } },
         { 18, false, { {"Frog", {-150.0f, -200.0f}},{"Frog", {120.0f, 220.0f}},{"Monkey", {-250.0f, 60.0f}},{"Monkey", {300.0f, 60.0f}}, } },
-        { 19, false, { {"Monkey", {-180.0f, -80.0f}},{"Monkey", {0.0f, -80.0f}},{"Monkey", {180.0f, -80.0f}},{"RedDemon", {-350.0f, 230.0f}},{"RedDemon", {350.0f, 230.0f}},{"RedDemon", {-310.0f, -290.0f}},{"RedDemon", {310.0f, -290.0f}}, } },
+        { 19, false, { {"Monkey", {-180.0f, -90.0f}},{"Monkey", {0.0f, -90.0f}},{"Monkey", {180.0f, -90.0f}},{"RedDemon", {-350.0f, 230.0f}},{"RedDemon", {350.0f, 230.0f}},{"RedDemon", {-310.0f, -290.0f}},{"RedDemon", {310.0f, -290.0f}}, } },
         { 20, true, { {"Boss2", {0.0f, 95.0f}}, } }, // 第20關: 1隻 Boss2
     };
     m_IntroBGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/intro.mp3");

@@ -112,6 +112,10 @@ void App::Update() {
       LOG_INFO("Nick is invincible now");
       m_Nick->CheatInvincible();
     }
+    if (Util::Input::IsKeyDown(Util::Keycode::G)) {
+      LOG_INFO("Kill Nick");
+      m_Nick->Die();
+    }
   }
 
   if (m_CurrentLevel == -1) {
