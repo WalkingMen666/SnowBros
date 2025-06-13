@@ -9,12 +9,15 @@
 SmallBoss2::SmallBoss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/smallboss2_fly_left.png", pos) {
     LoadAnimations();
     SetState(State::FLY); // 初始為 FLY 狀態
+    SetZIndex(15);
     m_Drawable = m_Animations["fly_left"]; // 初始動畫為 fly_left
     m_TargetDirection = Direction::Left; // 初始面向左邊
     m_Direction = Direction::Left;
     m_InitialVelocityX = -400.0f; // 初始速度
     m_IsEjecting = true; // 啟用彈射階段
     std::srand(static_cast<unsigned>(std::time(nullptr)));
+    m_LifeTimer = 0.0f; // 初始化生命計時器
+    m_DeathTime = 5.0f + static_cast<float>(std::rand()) / RAND_MAX * 5.0f; // 隨機 5-10 秒
 }
 
 void SmallBoss2::Update() {
@@ -23,6 +26,13 @@ void SmallBoss2::Update() {
     glm::vec2 newPosition = position;
 
     if (m_State == EnemyState::Normal) {
+        // 更新生命計時器
+        m_LifeTimer += deltaTime;
+        if (m_LifeTimer >= m_DeathTime) {
+            Die();
+            return;
+        }
+
         // 初始化移動距離
         float moveDistance = 0.0f;
 
@@ -58,7 +68,7 @@ void SmallBoss2::Update() {
             m_Direction = Direction::Left;
             m_TargetDirection = Direction::Left;
             SetState(State::WALK);
-            LOG_DEBUG("Ejection ended: Position: {}, IsOnPlatform: {}", glm::to_string(newPosition), m_IsOnPlatform);
+            //LOG_DEBUG("Ejection ended: Position: {}, IsOnPlatform: {}", glm::to_string(newPosition), m_IsOnPlatform);
         }
 
         // 處理方向變化
@@ -103,6 +113,8 @@ void SmallBoss2::Update() {
                     m_State = EnemyState::Normal;
                     m_HitCount = 0;
                     m_MeltStage = 0;
+                    m_LifeTimer = 0.0f; // 重置生命計時器
+                    m_DeathTime = 5.0f + static_cast<float>(std::rand()) / RAND_MAX * 5.0f; // 重新設置隨機死亡時間
                     SetState(State::STAND);
                     SetVisible(true);
 
@@ -183,7 +195,7 @@ void SmallBoss2::Die() {
         m_State = EnemyState::Dead;
         m_DeathTimer = 0.0f;
         m_HasLanded = false;
-        m_DeathVelocity = 450.0f;
+        //m_DeathVelocity = 450.0f;
         SetAnimation("die");
     }
 }
@@ -236,5 +248,5 @@ void SmallBoss2::LoadAnimations() {
     m_Animations["fly_right"] = std::make_shared<Util::Animation>(
         std::vector<std::string>{BASE_PATH + "smallboss2_smile_stand_right.png"}, false, 500, false, 0);
     m_Animations["die"] = std::make_shared<Util::Animation>(
-    std::vector<std::string>{BASE_PATH + "blue_circle.png", BASE_PATH + "red_circle.png", BASE_PATH + "blue_pig.png", BASE_PATH + "red_pig.png"}, false, 50, true, 0);
+        std::vector<std::string>{BASE_PATH + "blue_circle.png", BASE_PATH + "red_circle.png", BASE_PATH + "blue_pig.png", BASE_PATH + "red_pig.png"}, false, 50, true, 0);
 }

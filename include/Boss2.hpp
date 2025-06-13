@@ -15,7 +15,7 @@ class Boss2 : public Enemy, public std::enable_shared_from_this<Boss2> {
 public:
     enum class BossState { Stand, Shoot, Dead, Appear, Disappear };
 
-    Boss2(const glm::vec2& pos = {0.0f, 200.0f} );
+    Boss2(const glm::vec2& pos = {0.0f, 90.0f} );
     void Update() override;
     void OnHit() override;
     void OnCollision(std::shared_ptr<Util::GameObject> other) override;

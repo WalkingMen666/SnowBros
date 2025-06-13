@@ -29,6 +29,9 @@ public:
     void SetInitialVelocityX(float initialVelocityX) {
         m_InitialVelocityX = initialVelocityX;
     }
+    void SetInitialVelocityY(float initialVelocityY) {
+        m_JumpVelocity = initialVelocityY;
+    }
 
     [[nodiscard]] float GetCharacterWidth() const override { return GetSizeForMeltStage().first; }
     [[nodiscard]] float GetCharacterHeight() const override { return GetSizeForMeltStage().second; }
@@ -72,6 +75,8 @@ private:
     const float ACTION_DELAY = 0.5f;
     const float m_Width = 55.0f;
     const float m_Height = 55.0f;
+    float m_LifeTimer = 10.0f; // 生命週期計時器
+    float m_DeathTime = 5.0f; // 死亡時間範圍 (5-10秒)
 
     // Private Methods
     void LoadAnimations();

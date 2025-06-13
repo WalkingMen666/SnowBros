@@ -16,7 +16,6 @@ Boss2::Boss2(const glm::vec2& pos) : Enemy(RESOURCE_DIR "/Image/Character/Boss/b
 void Boss2::Update() {
     float deltaTime = Util::Time::GetDeltaTimeMs() / 1000.0f;
     glm::vec2 position = GetPosition();
-    LOG_INFO( "Boss2 Position: ({}, {})", position.x, position.y);
     // Handle Dead state
     if (m_CurrentState == BossState::Dead) {
         m_DieTimer += deltaTime;
@@ -34,10 +33,10 @@ void Boss2::Update() {
 
         if (disappearTimer >= disappearDuration) {
             // Switch position
-            if (position.y == 100.0f) {
+            if (position.y == 90.0f) {
                 position = glm::vec2(0.0f, -232.0f); // boss2地面
             } else {
-                position = glm::vec2(0.0f, 100.0f);
+                position = glm::vec2(0.0f, 90.0f);
             }
             SetPosition(position);
 
@@ -63,21 +62,27 @@ void Boss2::Update() {
             // Spawn SmallBoss2 at four corners
             m_SmallBosses.clear();
             glm::vec2 corners[4] = {
-                {position.x - m_BossWidth / 2, position.y + m_BossHeight / 2}, // Top-left
-                {position.x + m_BossWidth / 2, position.y + m_BossHeight / 2}, // Top-right
-                {position.x - m_BossWidth / 2, position.y - m_BossHeight / 2}, // Bottom-left
-                {position.x + m_BossWidth / 2, position.y - m_BossHeight / 2}  // Bottom-right
+                {position.x - 89.5f, position.y + 102}, // Top-left
+                {position.x + 89.5f, position.y + 102}, // Top-right
+                {position.x - m_BossWidth / 2, position.y - 18}, // Bottom-left
+                {position.x + m_BossWidth / 2, position.y - 18}  // Bottom-right
             };
 
-            for (const auto& corner : corners) {
-                auto smallBoss2 = std::make_shared<SmallBoss2>(corner);
-                if (corner.x < 0) {
+            for (int i = 0; i < 4; ++i) {
+                auto smallBoss2 = std::make_shared<SmallBoss2>(corners[i]);
+                if (corners[i].x < 0) {
                     smallBoss2->SetDirection(Direction::Left);
-                    smallBoss2->SetInitialVelocityX(-400);
+                    smallBoss2->SetInitialVelocityX(-200);
                 } else {
                     smallBoss2->SetDirection(Direction::Right);
-                    smallBoss2->SetInitialVelocityX(400);
+                    smallBoss2->SetInitialVelocityX(200);
                 }
+                
+                // Add Y velocity for the first two corners (top corners)
+                if (i < 2) {
+                    smallBoss2->SetInitialVelocityY(700);
+                }
+                
                 App::GetInstance().AddPendingObject(smallBoss2);
                 m_SmallBosses.push_back(smallBoss2);
             }
@@ -89,13 +94,6 @@ void Boss2::Update() {
     static float moveTimer = 0.0f;
     static const float moveInterval = 5.0f; // Time before disappearing
     moveTimer += deltaTime;
-
-    // Make SmallBoss2 instances invisible during Disappear and Appear
-    // for (auto& smallBoss : m_SmallBosses) {
-    //     if (smallBoss) {
-    //         smallBoss->SetVisible(m_CurrentState != BossState::Disappear && m_CurrentState != BossState::Appear);
-    //     }
-    // }
 
     if (moveTimer >= moveInterval && m_CurrentState == BossState::Stand) {
         // Start Disappear animation
@@ -171,7 +169,7 @@ void Boss2::LoadAnimations() {
             RESOURCE_DIR "/Image/Character/Boss/boss2_3.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_4.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_5.png"
-        }, false, 200, false, 0);
+        }, false, 195, false, 0);
 
     // Stand animation
     m_Animations["stand"] = std::make_shared<Util::Animation>(
@@ -196,7 +194,7 @@ void Boss2::LoadAnimations() {
             RESOURCE_DIR "/Image/Character/Boss/boss2_3.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_2.png",
             RESOURCE_DIR "/Image/Character/Boss/boss2_1.png"
-        }, false, 200, false, 0);
+        }, false, 195, false, 0);
 }
 
 void Boss2::SwitchAnimation(BossState state) {

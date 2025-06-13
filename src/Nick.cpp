@@ -13,6 +13,7 @@ Nick::Nick()
     LoadAnimations();
     LoadSounds();
     SetPosition({0.0f, -325.0f});
+    SetZIndex(10);
     SwitchAnimation(State::SPAWN, false);
     SetInvincible(true);
     m_SpawnSound->Play();

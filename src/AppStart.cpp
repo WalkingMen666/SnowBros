@@ -6,14 +6,26 @@ App::App() {
     m_LevelConfigs = {
         { -1, false, {} }, // 初始畫面
         { 0, false, {} },  // 開始畫面
-        { 1, false, { {"RedDemon", {-260.0f, 160.0f}}, {"Monkey", {260.0f, 160.0f}}, {"Frog", {0.0f, -40.0f}}, {"Fat", {0.0f, 250.0f}} } },
-        { 2, false, { {"RedDemon", {150.0f, 100.0f}}, {"RedDemon", {-150.0f, 100.0f}}, {"RedDemon", {-110.0f, -185.0f}}, {"RedDemon", {65.0f, -80.0f}}}},
-        { 3, false, {{"RedDemon", {-260.0f, 160.0f}}} },
-        { 9, false, {} },
+        { 1, false, { {"RedDemon", {-260.0f, 160.0f}}, {"RedDemon", {260.0f, 160.0f}}, {"RedDemon", {0.0f, -40.0f}}, {"Fat", {0.0f, 250.0f}} } },
+        { 2, false, { {"Frog", {180.0f, 150.0f}}, {"Monkey", {-150.0f, 100.0f}}, {"Frog", {-110.0f, -185.0f}}, {"Monkey", {65.0f, -80.0f}} }},
+        { 3, false, {{"Frog", {-370.0f, 140.0f}}, {"Frog", {370.0f, 140.0f}}, {"RedDemon", {-200.0f, 20.0f}}, {"RedDemon", {200.0f, 20.0f}}, {"RedDemon", {-350.0f, -200.0f}}, {"RedDemon", {350.0f, -200.0f}} }},
+        { 4, false, {{"Fat", {0.0f, 240.0f}},{"Frog", {-270.0f, -200.0f}},{"Frog", {270.0f, -200.0f}},{"Monkey", {210.0f, 30.0f}},{"Monkey", {-225.0f, 100.0f}},{"Monkey", {100.0f, 250.0f}} } },
+        { 5, false, {{"Fat", {0.0f, 240.0f}},{"Frog", {-130.0f, 30.0f}},{"Frog", {120.0f, 30.0f}},{"RedDemon", {-370.0f, -90.0f}},{"RedDemon", {370.0f, -90.0f}},{"RedDemon", {-180.0f, -200.0f}}} },
+        { 6, false, {{"Fat", {0.0f, 240.0f}},{"Frog", {350.0f, 80.0f}},{"Frog", {130.0f, 40.0f}},{"Frog", {-130.0f, 40.0f}},{"RedDemon", {-380.0f, 30.0f}}} },
+        { 7, false, {{"RedDemon", {-230.0f, 230.0f}},{"RedDemon", {150.0f, 230.0f}},{"RedDemon", {-260.0f, 15.0f}},{"RedDemon", {-140.0f, -200.0f}},{"RedDemon", {160.0f, -200.0f}},{"RedDemon", {330.0f, -140.0f}}} },
+        { 8, false, {{"Monkey", {0.0f, 230.0f}},{"Monkey", {-200.0f, 100.0f}},{"Monkey", {200.0f, 100.0f}},{"Frog", {-290.0f, 10.0f}},{"Frog", {290.0f, 10.0f}}} },
+        { 9, false, {{"Monkey", {0.0f, 200.0f}},{"Monkey", {-300.0f, 0.0f}},{"Monkey", {300.0f, 0.0f}},{"Frog", {-260.0f, -200.0f}},{"Frog", {260.0f, -200.0f}}} },
         { 10, true, { {"Boss", {300.0f, 80.0f}}, } }, // 第10關: 1隻 Boss
-        { 20, true, { {"Boss2", {0.0f, 100.0f}}, } }, // 第20關: 1隻 Boss2
-        { 14, false, { {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}}, {"Monkey", {0.0f, 0.0f}}, {"Monkey", {0.0f, 100.0f}}, {"Monkey", {0.0f, -100.0f}}, {"Monkey", {100.0f, 200.0f}}, {"Monkey", {-100.0f, 200.0f}} } },
-        { 19, false, { {"RedDemon", {-260.0f, 160.0f}}, {"RedDemon", {260.0f, 160.0f}}, {"Frog", {0.0f, -40.0f}}, {"Fat", {0.0f, 250.0f}} } }
+        { 11, false, { {"RedDemon", {-360.0f, 240.0f}},{"RedDemon", {360.0f, 240.0f}},{"Frog", {-200.0f, 140.0f}},{"Monkey", {300.0f, 140.0f}}, } },
+        { 12, false, { {"Monkey", {-260.0f, -200.0f}},{"Monkey", {260.0f, -200.0f}},{"RedDemon", {-180.0f, 190.0f}},{"RedDemon", {180.0f, 190.0f}} } },
+        { 13, false, { {"Monkey", {-370.0f, 240.0f}}, {"Monkey", {350.0f, -320.0f}},{"RedDemon", {370.0f, 240.0f}},{"RedDemon", {-320.0f, -110.0f}} } },
+        { 14, false, { {"Monkey", {0.0f, 140.0f}},{"Monkey", {-370.0f, -10.0f}},{"Monkey", {370.0f, 10.0f}},{"Frog", {0.0f, -80.0f}}} },
+        { 15, false, { {"Monkey", {-240.0f, 100.0f}},{"Monkey", {240.0f, 100.0f}},{"Frog", {-250.0f, -65.0f}}, {"Frog", {250.0f, -65.0f}}} },
+        { 16, false, { {"Fat", {0.0f, 220.0f}},{"Monkey", {-200.0f, 70.0f}},{"Monkey", {200.0f, 130.0f}},{"Monkey", {0.0f, -20.0f}}, } },
+        { 17, false, { {"Monkey", {0.0f, 20.0f}},{"Monkey", {-370.0f, 230.0f}},{"RedDemon", {0.0f, -140.0f}},{"RedDemon", {0.0f, 170.0f}},{"RedDemon", {370.0f, 230.0f}}, } },
+        { 18, false, { {"Frog", {-150.0f, -200.0f}},{"Frog", {120.0f, 220.0f}},{"Monkey", {-250.0f, 60.0f}},{"Monkey", {300.0f, 60.0f}}, } },
+        { 19, false, { {"Monkey", {-180.0f, -80.0f}},{"Monkey", {0.0f, -80.0f}},{"Monkey", {180.0f, -80.0f}},{"RedDemon", {-350.0f, 230.0f}},{"RedDemon", {350.0f, 230.0f}},{"RedDemon", {-310.0f, -290.0f}},{"RedDemon", {310.0f, -290.0f}}, } },
+        { 20, true, { {"Boss2", {0.0f, 95.0f}}, } }, // 第20關: 1隻 Boss2
     };
     m_IntroBGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/intro.mp3");
     m_Stage1BGM = std::make_shared<Util::BGM>(RESOURCE_DIR "/Audio/stage1_bgm.mp3");

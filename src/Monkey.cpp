@@ -86,7 +86,7 @@ void Monkey::Update() {
                     m_ActionTimer = 0.0f;
                 }
             } else {
-                if (m_CurrentState == State::WALK && m_ActionTimer >= 1.0f) {
+                if (m_CurrentState == State::WALK && m_ActionTimer >= 0.1f &&m_ActionTimer <= 10.0f && (std::rand() % 10 <= 5)) {
                     int decision = std::rand() % 10;
                     if (decision < 3) {
                         m_IsChangingDirection = true;
