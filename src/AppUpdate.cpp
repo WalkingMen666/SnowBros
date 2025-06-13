@@ -233,6 +233,7 @@ void App::Update() {
             InitializeLevel(m_PRM->GetPhase());
             m_CurrentLevel == 19 ? m_Nick->SetPosition({0.0f, -175.0f}) : m_Nick->SetPosition({0.0f, -325.0f});
             m_Nick->SetState(Nick::State::SPAWN);
+            m_EndTimer = 0.0f;
           }
         }
       } else {

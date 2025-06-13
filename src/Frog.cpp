@@ -30,6 +30,14 @@ void Frog::Update() {
                 SetState(State::STAND);
                 m_AttackTimer = 0.0f;
             }
+            
+            newPosition = GameWorld::map_collision_judgement(m_Width, m_Height, position, m_JumpVelocity, m_Gravity, 0.0f, m_IsOnPlatform);
+            
+            if (m_AttackTimer >= m_AttackDuration && m_JumpVelocity < 0.0f && !m_IsOnPlatform) {
+                SetState(State::FALL);
+            }
+
+            SetPosition(newPosition);
         } else {
             float moveSpeed = (m_CurrentState == State::STAND || m_CurrentState == State::ATTACK) ? 0.0f : m_speed * deltaTime;
             float moveDistance = (m_Direction == Direction::Right) ? moveSpeed : -moveSpeed;
